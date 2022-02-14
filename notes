@@ -1,0 +1,8 @@
+kafka-console-producer \
+   --topic messages \
+   --broker-list localhost:9092 \
+   --property parse.key=true \
+   --property key.separator=,
+
+
+b91a7348-f9f0-4100-989a-cbdd2a198096,{"id":"b91a7348-f9f0-4100-989a-cbdd2a198096", "x":3.15, "y": 2.52}
