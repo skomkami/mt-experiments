@@ -19,12 +19,6 @@ import scala.util.Failure
 import scala.util.Success
 
 object ZIOProducer extends zio.App {
-  implicit val decoder: JsonDecoder[RandomMessage] =
-    DeriveJsonDecoder.gen[RandomMessage]
-
-  implicit val encoder: JsonEncoder[RandomMessage] =
-    DeriveJsonEncoder.gen[RandomMessage]
-
   val consumerSettings: ConsumerSettings =
     ConsumerSettings(List("localhost:9092"))
       .withGroupId("zio-consumer")
@@ -34,12 +28,15 @@ object ZIOProducer extends zio.App {
   val consumer = ZLayer.fromManaged(managedConsumer)
 
   val messageSerde: Serde[Any, RandomMessage] = Serde.string.inmapM {
-    matchAsString =>
+    messageAsString =>
       ZIO.fromEither(
-        matchAsString.fromJson[RandomMessage].left.map(new RuntimeException(_))
+        RandomMessage
+          .fromJson(messageAsString)
+          .left
+          .map(new RuntimeException(_))
       )
-  } { matchAsObj =>
-    ZIO.effect(matchAsObj.toJson)
+  } { messageAsObj =>
+    ZIO.effect(RandomMessage.toJson(messageAsObj))
   }
 
   val messageStream =
@@ -88,7 +85,8 @@ object ZIOProducer extends zio.App {
 //        .fork
 //      _ <- producerEffect.provideSomeLayer(producer) *> ZIO.sleep(5.seconds)
 //    } yield ()
-    val program = messageStream.provideSomeLayer(consumer ++ zio.console.Console.live)
+    val program =
+      messageStream.provideSomeLayer(consumer ++ zio.console.Console.live)
     program.run.exitCode
 
   }

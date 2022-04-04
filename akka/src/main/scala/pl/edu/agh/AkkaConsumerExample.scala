@@ -1,22 +1,16 @@
 package pl.edu.agh
 
 import akka.actor.ActorSystem
-import akka.kafka.{ConsumerSettings, Subscriptions}
-import akka.kafka.Subscriptions.TopicSubscription
+import akka.kafka.ConsumerSettings
+import akka.kafka.Subscriptions
 import akka.kafka.scaladsl.Consumer
-import akka.stream.scaladsl.{Keep, Sink}
-import org.apache.kafka.common.serialization.{
-  Deserializer,
-  Serializer,
-  StringDeserializer
-}
-import pl.edu.agh.msg.RandomMessage
-import io.circe.parser._
+import akka.stream.scaladsl.Keep
+import akka.stream.scaladsl.Sink
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor.Subscription
-import org.apache.kafka.common.TopicPartition
+import org.apache.kafka.common.serialization.Deserializer
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
-import pl.edu.agh.AkkaProducerExample.program
+import pl.edu.agh.msg.RandomMessage
 
 import scala.concurrent.Await
 
@@ -25,11 +19,7 @@ object AkkaConsumerExample {
   val config = system.settings.config.getConfig("akka.kafka.consumer")
   val messageDeserializer: Deserializer[RandomMessage] =
     (topic: String, data: Array[Byte]) => {
-      parse(new String(data))
-        .flatMap(RandomMessage.jsonDecoder.decodeJson) match {
-        case Right(value) => value
-        case Left(error)  => throw new Throwable(s"Error: ${error.getMessage}")
-      }
+      RandomMessage.unsafeFromJson(new String(data))
     }
 
   val consumerSettings =

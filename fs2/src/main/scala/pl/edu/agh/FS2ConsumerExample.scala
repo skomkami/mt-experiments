@@ -1,17 +1,14 @@
 package pl.edu.agh
 
 import cats.effect._
-import cats.syntax.all._
 import fs2.kafka._
 import pl.edu.agh.msg.RandomMessage
-import io.circe._, io.circe.parser._
 
 import scala.concurrent.duration._
 
 object FS2ConsumerExample extends IOApp {
   val messageDeserializer = Deserializer.instance { (topic, headers, bytes) =>
-    val either =
-      parse(new String(bytes)).flatMap(RandomMessage.jsonDecoder.decodeJson)
+    val either = RandomMessage.fromJson(new String(bytes))
     IO.fromEither(either)
   }
   val consumerSettings =
@@ -33,7 +30,6 @@ object FS2ConsumerExample extends IOApp {
         .subscribeTo("messages")
         .records
         .mapAsync(1)(cr => processRecord(cr.record))
-//        .through(commitBatchWithin(100, 1.seconds))
 
     stream.compile.drain.as(ExitCode.Success)
   }

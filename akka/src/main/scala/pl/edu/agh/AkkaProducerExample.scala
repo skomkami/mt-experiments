@@ -4,18 +4,17 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.kafka.ProducerSettings
 import akka.kafka.scaladsl.Producer
-import org.apache.kafka.common.serialization.Serializer
 import akka.stream.scaladsl.Source
-import io.circe.parser.parse
 import io.circe.syntax.EncoderOps
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.serialization.Serializer
 import org.apache.kafka.common.serialization.StringSerializer
-import org.scalacheck.Prop.Exception
 import pl.edu.agh.generator.Generator
 import pl.edu.agh.msg.RandomMessage
 
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
+import scala.concurrent.Future
 
 object AkkaProducerExample {
   implicit val system = ActorSystem("test")

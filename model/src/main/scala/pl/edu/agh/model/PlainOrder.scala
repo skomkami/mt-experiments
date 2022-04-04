@@ -8,4 +8,4 @@ case class PlainOrder(id: Int,
                       model: CarModel,
                       equipment: List[EquipEnum])
 
-case object PlainOrder extends JsonSerializable[PlainOrder]
+case object PlainOrder extends JsonCodec[PlainOrder]

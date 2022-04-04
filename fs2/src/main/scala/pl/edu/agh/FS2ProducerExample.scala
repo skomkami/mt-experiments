@@ -1,4 +1,5 @@
 package pl.edu.agh
+
 import cats.effect._
 import cats.implicits.toTraverseOps
 import fs2.{Pipe, Pure, Stream}
@@ -12,7 +13,7 @@ import scala.concurrent.duration.DurationInt
 
 object FS2ProducerExample extends IOApp {
   val messageSerializer = Serializer.lift[IO, RandomMessage] { rm =>
-      IO.pure(rm.asJson.spaces2.getBytes("UTF-8"))
+    IO.pure(RandomMessage.toJson(rm).getBytes("UTF-8"))
   }
 
   val producerSettings = ProducerSettings(
@@ -20,8 +21,8 @@ object FS2ProducerExample extends IOApp {
     valueSerializer = messageSerializer
   ).withBootstrapServers("localhost:9092")
 
-  type Producer =  ProducerRecords[Unit, String, RandomMessage]
-  type ProducerRes =  ProducerResult[Unit, String, RandomMessage]
+  type Producer = ProducerRecords[Unit, String, RandomMessage]
+  type ProducerRes = ProducerResult[Unit, String, RandomMessage]
 
   def run(args: List[String]): IO[ExitCode] = {
 //    val stream =
@@ -36,8 +37,10 @@ object FS2ProducerExample extends IOApp {
 
     val rm = Generator.generateMsg()
     val record = ProducerRecord("messages", rm.id, rm)
-    val records: ProducerRecords[Unit, String, RandomMessage] = ProducerRecords.one(record)
-    val producerStream: Pipe[IO, Producer, ProducerRes] = KafkaProducer.pipe(producerSettings)
+    val records: ProducerRecords[Unit, String, RandomMessage] =
+      ProducerRecords.one(record)
+    val producerStream: Pipe[IO, Producer, ProducerRes] =
+      KafkaProducer.pipe(producerSettings)
 
     val stream = Stream(records)
       .through(producerStream)
@@ -58,7 +61,6 @@ object FS2ProducerExample extends IOApp {
 //            .groupWithin(500, 15.seconds)
 //            .evalMap(x => x.sequence)
 //        }
-
 
     stream.compile.drain.as(ExitCode.Success)
   }
