@@ -5,18 +5,20 @@ object Dependencies {
   case object Versions {
     val akkaCore = "2.6.18"
     val akkaStreamKafka = "3.0.0"
-    val kafkaClients = "3.1.0"
     val circe = "0.15.0-M1"
+    val enumeration = "1.7.0"
     val fs2 = "3.2.4"
     val fs2Kafka = "3.0.0-M4"
+    val kafkaClients = "3.1.0"
     val quicklens = "1.8.2"
     val pureconfig = "0.14.0"
     val scalaTest = "3.2.9"
     val scribe = "3.6.10"
+    val scalacheckFaker = "7.0.0"
 //    val zio = "1.0.13"
+    val slf4j = "1.7.35"
     val zioKafka = "0.15.0"
     val zioJson = "0.1.5"
-    val slf4j = "1.7.35"
   }
 
   case object co {
@@ -28,7 +30,8 @@ object Dependencies {
   case object com {
 
     case object beachape {
-      val `enumeratum-circe` = "com.beachape" %% "enumeratum-circe" % "1.6.1"
+      val enumeratum = "com.beachape" %% "enumeratum" % Versions.enumeration
+      val `enumeratum-circe` = "com.beachape" %% "enumeratum-circe" % Versions.enumeration
     }
 
     case object github {
@@ -93,6 +96,11 @@ object Dependencies {
 
       private def dependency(artifact: String): ModuleID =
         "io.circe" %% s"circe-$artifact" % Versions.circe
+    }
+    case object github {
+      case object etspaceman {
+        val `scalacheck-faker` = "io.github.etspaceman" %% "scalacheck-faker" % Versions.scalacheckFaker
+      }
     }
   }
 

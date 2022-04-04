@@ -12,6 +12,9 @@ lazy val model =
   project
     .in(file("model"))
     .settings(commonSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq(io.github.etspaceman.`scalacheck-faker`)
+    )
 
 lazy val akka =
   project
@@ -59,6 +62,8 @@ lazy val main =
 lazy val baseLibraries = Seq(
   com.outr.scribe,
   com.softwaremill.quicklens,
+  com.beachape.enumeratum,
+  com.beachape.`enumeratum-circe`,
   io.circe.`circe-generic`,
   io.circe.`circe-parser`,
   org.scalacheck.scalacheck,
