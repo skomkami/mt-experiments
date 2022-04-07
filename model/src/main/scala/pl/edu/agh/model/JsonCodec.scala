@@ -10,19 +10,9 @@ import shapeless.Lazy
 import io.circe.parser._
 import io.circe.syntax.EncoderOps
 
-abstract class JsonCodec[T] {
+trait JsonDeserializable[T] {
   implicit def jsonDecoder(implicit d: Lazy[DerivedDecoder[T]]): Decoder[T] =
     deriveDecoder[T]
-
-  implicit def jsonEncoder(
-    implicit
-    d: Lazy[DerivedAsObjectEncoder[T]]
-  ): Encoder[T] =
-    deriveEncoder[T]
-
-  def toJson(obj: T)(implicit
-                     d: Lazy[DerivedAsObjectEncoder[T]]): String =
-    obj.asJson.noSpaces
 
   def fromJson(
     obj: String
@@ -36,5 +26,20 @@ abstract class JsonCodec[T] {
       case Left(error)  => throw new Throwable(s"Error: ${error.getMessage}")
     }
   }
-
 }
+
+trait JsonSerializable[T] {
+  implicit def jsonEncoder(
+    implicit
+    d: Lazy[DerivedAsObjectEncoder[T]]
+  ): Encoder[T] =
+    deriveEncoder[T]
+
+  def toJson(obj: T)(implicit
+                     d: Lazy[DerivedAsObjectEncoder[T]]): String =
+    obj.asJson.noSpaces
+}
+
+abstract class JsonCodec[T]
+    extends JsonDeserializable[T]
+    with JsonSerializable[T]

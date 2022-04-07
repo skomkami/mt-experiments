@@ -4,21 +4,21 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import pl.edu.agh.generator.Generator
 import pl.edu.agh.msg.RandomMessage
-import zio._
-import zio.blocking.Blocking
-import zio.duration.durationInt
-import zio.json._
-import zio.kafka.consumer._
-import zio.kafka.producer.Producer
-import zio.kafka.producer.ProducerSettings
-import zio.kafka.serde.Serde
-import zio.stream._
+import _root_.zio._
+import _root_.zio.blocking.Blocking
+import _root_.zio.duration.durationInt
+import _root_.zio.json._
+import _root_.zio.kafka.consumer._
+import _root_.zio.kafka.producer.Producer
+import _root_.zio.kafka.producer.ProducerSettings
+import _root_.zio.kafka.serde.Serde
+import _root_.zio.stream._
 
 import java.util.UUID
 import scala.util.Failure
 import scala.util.Success
 
-object ZIOProducer extends zio.App {
+object ZIOProducer extends App {
   val consumerSettings: ConsumerSettings =
     ConsumerSettings(List("localhost:9092"))
       .withGroupId("zio-consumer")
@@ -86,7 +86,7 @@ object ZIOProducer extends zio.App {
 //      _ <- producerEffect.provideSomeLayer(producer) *> ZIO.sleep(5.seconds)
 //    } yield ()
     val program =
-      messageStream.provideSomeLayer(consumer ++ zio.console.Console.live)
+      messageStream.provideSomeLayer(consumer ++ console.Console.live)
     program.run.exitCode
 
   }

@@ -4,7 +4,7 @@ import enumeratum._
 
 sealed trait EquipEnum extends EnumEntry
 
-object EquipEnum extends Enum[EquipEnum] {
+object EquipEnum extends Enum[EquipEnum] with CirceEnum[EquipEnum] {
 
   case object AirConditioning extends EquipEnum
   case object Navigation extends EquipEnum
