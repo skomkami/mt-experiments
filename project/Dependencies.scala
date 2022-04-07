@@ -6,6 +6,7 @@ object Dependencies {
     val akkaCore = "2.6.18"
     val akkaStreamKafka = "3.0.0"
     val circe = "0.15.0-M1"
+    val doobie = "1.0.0-M1"
     val enumeration = "1.7.0"
     val fs2 = "3.2.4"
     val fs2Kafka = "3.0.0-M4"
@@ -17,6 +18,7 @@ object Dependencies {
     val scalacheckFaker = "7.0.0"
 //    val zio = "1.0.13"
     val slf4j = "1.7.35"
+    val zioCats = "3.1.1.0"
     val zioKafka = "0.15.0"
     val zioJson = "0.1.5"
   }
@@ -66,18 +68,12 @@ object Dependencies {
     }
   }
 
-//  case object de {
-//    case object heikoseeberger {
-//      val `akka-http-circe` =
-//        "de.heikoseeberger" %% "akka-http-circe" % Versions.akkaHttpCirce
-//    }
-//  }
-
   case object dev {
     case object zio {
 //      val `zio-streams` = "dev.zio" %% "zio-streams" % Versions.zio
       val `zio-kafka` = "dev.zio" %% "zio-kafka" % Versions.zioKafka
       val `zio-json` = "dev.zio" %% "zio-json" % Versions.zioJson
+      val `zio-interop-cats` = "dev.zio" %% "zio-interop-cats" % Versions.zioCats
     }
   }
 
@@ -118,6 +114,14 @@ object Dependencies {
     case object scalatest {
       val scalatest =
         "org.scalatest" %% "scalatest" % Versions.scalaTest
+    }
+
+    case object tpolecat {
+      val `doobie-core` = "org.tpolecat" %% "doobie-core" % Versions.doobie
+      val `doobie-h2` = "org.tpolecat" %% "doobie-h2" % Versions.doobie
+      val `doobie-postgres` = "org.tpolecat" %% "doobie-postgres" % Versions.doobie
+      val `doobie-specs2` = "org.tpolecat" %% "doobie-specs2" % Versions.doobie
+      val `doobie-postgres-circe` = "org.tpolecat" %% "doobie-postgres-circe" % Versions.doobie
     }
 
     case object typelevel {

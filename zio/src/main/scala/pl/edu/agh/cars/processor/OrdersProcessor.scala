@@ -33,7 +33,8 @@ case class OrdersProcessor() extends StatelessPipe[PlainOrder, ProcessedOrder] {
       )
     }
     ProcessedOrder(
-      date = plainOrder.date,
+      id = plainOrder.id,
+      orderDate = plainOrder.date,
       buyer = plainOrder.buyer,
       items = orderItems,
       totalUSD = orderItems.map(_.priceUSD).sum

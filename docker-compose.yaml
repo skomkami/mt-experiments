@@ -50,6 +50,19 @@ services:
     networks:
       - mt_experiments_network
 
+  postgres:
+    image: postgres
+    container_name: 'postgres'
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=mt_experiments
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - mt_experiments_network
+    volumes:
+      - ./db/createDb.sql:/docker-entrypoint-initdb.d/createDb.sql
+
 networks:
   mt_experiments_network:
     ipam:

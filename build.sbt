@@ -37,7 +37,9 @@ lazy val zio =
       libraryDependencies ++= Seq(
 //        dev.zio.`zio-streams`,
         dev.zio.`zio-kafka`,
-        dev.zio.`zio-json`
+        dev.zio.`zio-json`,
+        dev.zio.`zio-interop-cats`,
+        com.github.pureconfig.pureconfig
       )
     )
 
@@ -70,7 +72,12 @@ lazy val baseLibraries = Seq(
   org.scalatest.scalatest,
   org.typelevel.`discipline-scalatest`,
   org.slf4j.`slf4j-api`,
-  org.slf4j.`slf4j-simple`
+  org.slf4j.`slf4j-simple`,
+  org.tpolecat.`doobie-core`,
+  org.tpolecat.`doobie-core`,
+  org.tpolecat.`doobie-h2`,
+  org.tpolecat.`doobie-postgres`,
+  org.tpolecat.`doobie-postgres-circe`
 )
 
 lazy val commonSettings = Seq(
