@@ -1,4 +1,4 @@
-package pl.edu.agh.cars.processor
+package pl.edu.agh.common
 
 import scala.util.Random
 

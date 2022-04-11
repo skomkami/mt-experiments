@@ -1,7 +1,7 @@
 package pl.edu.agh
 
 import cats.effect._
-import fs2.kafka._
+import _root_.fs2.kafka._
 import pl.edu.agh.msg.RandomMessage
 
 import scala.concurrent.duration._

@@ -1,18 +1,22 @@
 package pl.edu.agh.cars.processor
 
 import pl.edu.agh.common.{CarsPrices, FakeCantor}
-import pl.edu.agh.model.EquipEnum
-import pl.edu.agh.model.ItemEnum
-import pl.edu.agh.model.JsonCodec
-import pl.edu.agh.model.JsonDeserializable
-import pl.edu.agh.model.OrderItem
-import pl.edu.agh.model.PlainOrder
-import pl.edu.agh.model.ProcessedOrder
-import pl.edu.agh.zio.pipeline.Input
-import pl.edu.agh.zio.pipeline.KafkaInput
-import pl.edu.agh.zio.pipeline.KafkaOutput
-import pl.edu.agh.zio.pipeline.Output
-import pl.edu.agh.zio.pipeline.StatelessPipe
+import pl.edu.agh.fs2.pipeline.{
+  Input,
+  KafkaInput,
+  KafkaOutput,
+  Output,
+  StatelessPipe
+}
+import pl.edu.agh.model.{
+  EquipEnum,
+  ItemEnum,
+  JsonCodec,
+  JsonDeserializable,
+  OrderItem,
+  PlainOrder,
+  ProcessedOrder
+}
 
 case class OrdersProcessor() extends StatelessPipe[PlainOrder, ProcessedOrder] {
   override def onEvent(plainOrder: PlainOrder): ProcessedOrder = {
@@ -44,11 +48,11 @@ case class OrdersProcessor() extends StatelessPipe[PlainOrder, ProcessedOrder] {
 
   override def input: Input[PlainOrder] = {
     implicit val decoder: JsonDeserializable[PlainOrder] = PlainOrder
-    KafkaInput[PlainOrder]("zio-orders", "orders-processor")
+    KafkaInput[PlainOrder]("fs2_orders", "fs2-orders-processor")
   }
 
   override def output: Output[ProcessedOrder] = {
     implicit val encoder: JsonCodec[ProcessedOrder] = ProcessedOrder
-    KafkaOutput[ProcessedOrder]("processed_orders")
+    KafkaOutput[ProcessedOrder]("fs2_processed_orders")
   }
 }

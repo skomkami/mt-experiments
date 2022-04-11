@@ -2,8 +2,8 @@ package pl.edu.agh
 
 import cats.effect._
 import cats.implicits.toTraverseOps
-import fs2.{Pipe, Pure, Stream}
-import fs2.kafka._
+import _root_.fs2.{Pipe, Pure, Stream}
+import _root_.fs2.kafka._
 import io.circe.syntax._
 import pl.edu.agh.FS2ConsumerExample.consumerSettings
 import pl.edu.agh.generator.Generator

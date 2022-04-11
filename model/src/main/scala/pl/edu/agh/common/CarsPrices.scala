@@ -1,7 +1,6 @@
-package pl.edu.agh.cars.processor
+package pl.edu.agh.common
 
-import pl.edu.agh.model.CarModel
-import pl.edu.agh.model.ItemEnum
+import pl.edu.agh.model.{CarModel, ItemEnum}
 
 object CarsPrices {
   case class Price(amount: BigDecimal, currency: String)

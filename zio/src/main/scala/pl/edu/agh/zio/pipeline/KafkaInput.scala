@@ -42,11 +42,11 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
       .subscribeAnd(Subscription.topics(topic))
       .plainStream(Serde.string, messageSerde.asTry)
       .map(cr => cr.record.value() -> cr.offset)
-      .tap {
-        case (Success(record), _) =>
-          console.putStrLn(record.toString)
-        case (Failure(err), _) => console.putStrLn(s"error: ${err.getMessage}")
-      }
+//      .tap {
+//        case (Success(record), _) =>
+//          console.putStrLn(record.toString)
+//        case (Failure(err), _) => console.putStrLn(s"error: ${err.getMessage}")
+//      }
       .collect {
         case (Success(v), _) => v
       }
