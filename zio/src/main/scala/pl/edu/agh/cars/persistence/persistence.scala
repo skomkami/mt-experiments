@@ -6,7 +6,7 @@ import zio.Task
 object persistence {
   object Persistence {
     trait Service {
-      def saveBatch(ordersBatch: OrdersBatch): Task[Int]
+      def save(ordersBatch: OrdersBatch): Task[Int]
     }
   }
 }

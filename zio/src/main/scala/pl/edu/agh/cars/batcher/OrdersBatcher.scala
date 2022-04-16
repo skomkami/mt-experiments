@@ -24,8 +24,6 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
     KafkaOutput[OrdersBatch]("order_batch")
   }
 
-//  override def run: ZIO[Any, _, _] =
-//    input.source.foldWhile(OrdersBatch.empty)(_.totalAmount < 200000)(_ add _)
   override def run: ZIO[Any, _, _] =
     input.source
       .aggregate(

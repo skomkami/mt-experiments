@@ -22,9 +22,9 @@ case class PostgresOutput() extends Output[OrdersBatch] {
   override def sink: ZSink[Any, _, OrdersBatch, _, _] = ZSink.foreach {
     (msg: OrdersBatch) =>
       val persistenceLayer = (Configuration.live ++ Blocking.live) >>> PersistenceService.live
-      val x = ZIO
-        .fromFunctionM[Persistence, Throwable, Int](_.get.saveBatch(msg))
+      val outputEffect = ZIO
+        .fromFunctionM[Persistence, Throwable, Int](_.get.save(msg))
         .provideLayer(persistenceLayer)
-      x
+      outputEffect
   }
 }
