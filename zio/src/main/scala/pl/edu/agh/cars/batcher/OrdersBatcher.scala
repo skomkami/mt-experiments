@@ -16,12 +16,12 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
 
   override def input: Input[ProcessedOrder] = {
     implicit val decoder: JsonDeserializable[ProcessedOrder] = ProcessedOrder
-    KafkaInput[ProcessedOrder]("processed_orders", "orders-batcher")
+    KafkaInput[ProcessedOrder]("zio_processed_orders", "zio-orders-batcher")
   }
 
   override def output: Output[OrdersBatch] = {
     implicit val decoder: JsonSerializable[OrdersBatch] = OrdersBatch
-    KafkaOutput[OrdersBatch]("order_batch")
+    KafkaOutput[OrdersBatch]("zio_order_batch")
   }
 
   override def run: ZIO[Any, _, _] =

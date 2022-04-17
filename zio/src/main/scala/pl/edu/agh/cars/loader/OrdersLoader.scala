@@ -10,7 +10,7 @@ case class OrdersLoader(filename: String)
 
   override def output: Output[PlainOrder] = {
     implicit val encoder: JsonCodec[PlainOrder] = PlainOrder
-    KafkaOutput[PlainOrder]("zio-orders")
+    KafkaOutput[PlainOrder]("zio_orders")
   }
 
   override def onEvent(event: String): PlainOrder =

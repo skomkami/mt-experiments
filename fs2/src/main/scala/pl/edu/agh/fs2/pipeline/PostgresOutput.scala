@@ -2,6 +2,7 @@ package pl.edu.agh.fs2.pipeline
 import cats.effect.IO
 import doobie._
 import doobie.util.transactor.Transactor.Aux
+import pl.edu.agh.common.EntityStore
 import pl.edu.agh.config.DbConfig
 
 case class PostgresOutput[T](config: DbConfig,
@@ -20,8 +21,4 @@ case class PostgresOutput[T](config: DbConfig,
   override def sink: fs2.Pipe[IO, T, _] = _.mapAsync(1) { ent =>
     store.save(ent)
   }
-}
-
-trait EntityStore[F[_], T] {
-  def save(entity: T): F[Int]
 }

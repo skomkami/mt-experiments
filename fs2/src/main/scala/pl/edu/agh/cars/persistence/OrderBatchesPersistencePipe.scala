@@ -1,10 +1,9 @@
 package pl.edu.agh.cars.persistence
 
 import cats.effect.IO
-import pl.edu.agh.common.OrdersStore
+import pl.edu.agh.common.{EntityStore, OrdersStore}
 import pl.edu.agh.config.DbConfig
 import pl.edu.agh.fs2.pipeline.{
-  EntityStore,
   Input,
   KafkaInput,
   Output,

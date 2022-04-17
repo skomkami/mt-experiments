@@ -1,12 +1,12 @@
 package pl.edu.agh.cars.persistence
 
-import pl.edu.agh.model.OrdersBatch
+import pl.edu.agh.common.EntityStore
 import zio.Task
 
 object persistence {
   object Persistence {
-    trait Service {
-      def save(ordersBatch: OrdersBatch): Task[Int]
+    trait Service[T] extends EntityStore[Task, T] {
+      def save(ordersBatch: T): Task[Int]
     }
   }
 }
