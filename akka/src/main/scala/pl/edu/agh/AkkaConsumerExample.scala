@@ -1,11 +1,11 @@
 package pl.edu.agh
 
-import akka.actor.ActorSystem
-import akka.kafka.ConsumerSettings
-import akka.kafka.Subscriptions
-import akka.kafka.scaladsl.Consumer
-import akka.stream.scaladsl.Keep
-import akka.stream.scaladsl.Sink
+import _root_.akka.actor.ActorSystem
+import _root_.akka.kafka.ConsumerSettings
+import _root_.akka.kafka.Subscriptions
+import _root_.akka.kafka.scaladsl.Consumer
+import _root_.akka.stream.scaladsl.Keep
+import _root_.akka.stream.scaladsl.Sink
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.StringDeserializer

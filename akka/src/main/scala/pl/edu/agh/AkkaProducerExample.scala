@@ -1,10 +1,10 @@
 package pl.edu.agh
 
-import akka.Done
-import akka.actor.ActorSystem
-import akka.kafka.ProducerSettings
-import akka.kafka.scaladsl.Producer
-import akka.stream.scaladsl.Source
+import _root_.akka.Done
+import _root_.akka.actor.ActorSystem
+import _root_.akka.kafka.ProducerSettings
+import _root_.akka.kafka.scaladsl.Producer
+import _root_.akka.stream.scaladsl.Source
 import io.circe.syntax.EncoderOps
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.Serializer
