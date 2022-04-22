@@ -1,16 +1,11 @@
 package pl.edu.agh.fs2.pipeline
 
 import cats.effect.IO
-import fs2.kafka.{
-  AutoOffsetReset,
-  ConsumerSettings,
-  Deserializer,
-  KafkaConsumer
-}
+import fs2.kafka._
 import io.circe.generic.decoding.DerivedDecoder
 import pl.edu.agh.model.JsonDeserializable
 
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration._
 
 case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
   implicit decoder: JsonDeserializable[T]
@@ -35,5 +30,4 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
       .subscribeTo(topic)
       .records //TODO obsługa commitow
       .map(_.record.value)
-
 }
