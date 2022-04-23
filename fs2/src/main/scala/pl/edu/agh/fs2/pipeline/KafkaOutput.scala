@@ -28,6 +28,7 @@ case class KafkaOutput[T: DerivedAsObjectEncoder](topic: String)(
           val record = ProducerRecord(topic, UUID.randomUUID().toString, msg)
           val records: ProducerRecords[Unit, String, T] =
             ProducerRecords.one(record)
+
           records
         }
         .through(KafkaProducer.pipe(producerSettings))

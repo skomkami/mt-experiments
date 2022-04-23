@@ -24,10 +24,15 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
       .withGroupId(s"fs2-$consumerName")
       .withCloseTimeout(1.minute)
 
+  private val commitOffsetsPipe
+    : fs2.Pipe[IO, CommittableConsumerRecord[IO, String, T], T] =
+    _.map(_.offset)
+      .through(commitBatchWithin[IO](10, 500.millis)) >> fs2.Stream.empty
+
   override def source: fs2.Stream[IO, T] =
     KafkaConsumer
       .stream(consumerSettings)
       .subscribeTo(topic)
-      .records //TODO obsługa commitow
-      .map(_.record.value)
+      .records
+      .broadcastThrough[IO, T](commitOffsetsPipe, s1 => s1.map(_.record.value))
 }
