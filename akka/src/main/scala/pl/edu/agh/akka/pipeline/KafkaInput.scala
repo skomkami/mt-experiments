@@ -13,13 +13,14 @@ import akka.stream.scaladsl.Keep
 import io.circe.generic.decoding.DerivedDecoder
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{Deserializer, StringDeserializer}
-import pl.edu.agh.AkkaConsumerExample.config
+import pl.edu.agh.AkkaConsumerExample.system
 import pl.edu.agh.model.JsonDeserializable
 
 case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
   implicit decoder: JsonDeserializable[T],
   actorSystem: ActorSystem
 ) extends Input[T] {
+  val config = system.settings.config.getConfig("akka.kafka.consumer")
 
   private val messageDeserializer: Deserializer[T] =
     (topic: String, data: Array[Byte]) => {
