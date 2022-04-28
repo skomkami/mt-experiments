@@ -16,10 +16,15 @@ lazy val model =
       libraryDependencies ++= Seq(io.github.etspaceman.`scalacheck-faker`)
     )
 
+lazy val common = project
+  .in(file("common"))
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= Seq(org.apache.kafka.`kafka-clients`))
+
 lazy val akka =
   project
     .in(file("akka"))
-    .dependsOn(model)
+    .dependsOn(model, common)
     .settings(commonSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
@@ -31,7 +36,7 @@ lazy val akka =
 lazy val zio =
   project
     .in(file("zio"))
-    .dependsOn(model)
+    .dependsOn(model, common)
     .settings(commonSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
@@ -46,7 +51,7 @@ lazy val zio =
 lazy val fs2 =
   project
     .in(file("fs2"))
-    .dependsOn(model)
+    .dependsOn(model, common)
     .settings(commonSettings: _*)
     .settings(
       libraryDependencies ++= Seq(

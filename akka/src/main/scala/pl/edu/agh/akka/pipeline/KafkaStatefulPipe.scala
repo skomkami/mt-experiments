@@ -1,22 +1,21 @@
 package pl.edu.agh.akka.pipeline
 import akka.actor.ActorSystem
 import akka.kafka.scaladsl.Consumer
-import akka.kafka.{ConsumerSettings, Subscriptions}
+import akka.kafka.ConsumerSettings
+import akka.kafka.Subscriptions
 import akka.stream.scaladsl.Sink
 import cats.implicits.toTraverseOps
 import io.circe.generic.decoding.DerivedDecoder
-import org.apache.kafka.clients.admin.{Admin, AdminClientConfig, OffsetSpec}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.TopicPartition
-import org.apache.kafka.common.serialization.{Deserializer, StringDeserializer}
+import org.apache.kafka.common.serialization.Deserializer
+import org.apache.kafka.common.serialization.StringDeserializer
 import pl.edu.agh.AkkaConsumerExample.config
 import pl.edu.agh.model.JsonDeserializable
+import pl.edu.agh.util.kafka.KafkaUtil
 
-import java.util.Properties
-import java.util.concurrent.TimeUnit
-import scala.concurrent.{ExecutionContext, Future}
-import scala.jdk.CollectionConverters._
-import scala.util.Try
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
   implicit val decoder: JsonDeserializable[S],
@@ -27,7 +26,7 @@ abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
   override def output: KafkaOutput[S]
 
   private val messageDeserializer: Deserializer[S] =
-    (topic: String, data: Array[Byte]) => {
+    (_: String, data: Array[Byte]) => {
       decoder.unsafeFromJson(new String(data))
     }
 
@@ -37,27 +36,7 @@ abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
       .withGroupId("recover")
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
-  def getCommittedOffset: Option[Long] = {
-    Try {
-      val properties: Properties = new Properties
-      properties.put(
-        AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,
-        "localhost:9092"
-      )
-      val admin: Admin = Admin.create(properties)
-      val tp = new TopicPartition(output.topic, 0)
-      val util: Map[TopicPartition, OffsetSpec] = Map(tp -> OffsetSpec.latest())
-      val offsetsRes =
-        admin.listOffsets(util.asJava)
-      val offsetAndMeta = offsetsRes
-        .partitionResult(tp)
-        .get(1, TimeUnit.SECONDS)
-      offsetAndMeta.offset()
-      //scribe.warn(msg.getMessage);
-    }.fold(fa = msg => { None }, fb = Option.apply)
-  }
-
-  private def readMessageAtOffset(offset: Long) = {
+  private def readMessageAtOffset(offset: Long): Future[S] = {
     Consumer
       .plainSource(
         consumerSettings,
@@ -73,7 +52,9 @@ abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
   override def restore: Future[Option[S]] = {
     implicit val ec: ExecutionContext = actorSystem.dispatcher
     Future
-      .successful(getCommittedOffset)
+      .successful(
+        KafkaUtil.getCommittedOffset(new TopicPartition(output.topic, 0))
+      )
       .flatMap(_.traverse(readMessageAtOffset))
   }
 }

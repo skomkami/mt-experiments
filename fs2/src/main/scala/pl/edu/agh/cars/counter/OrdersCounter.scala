@@ -1,25 +1,27 @@
 package pl.edu.agh.cars.counter
 
-import akka.actor.ActorSystem
 import io.circe.generic.decoding.DerivedDecoder
-import pl.edu.agh.akka.pipeline.{KafkaInput, KafkaOutput, KafkaStatefulPipe}
 import pl.edu.agh.common.Counter
-import pl.edu.agh.model.{JsonDeserializable, JsonSerializable, OrdersBatch}
+import pl.edu.agh.fs2.pipeline.KafkaInput
+import pl.edu.agh.fs2.pipeline.KafkaOutput
+import pl.edu.agh.fs2.pipeline.KafkaStatefulPipe
+import pl.edu.agh.model.JsonDeserializable
+import pl.edu.agh.model.JsonSerializable
+import pl.edu.agh.model.OrdersBatch
 
-case class OrdersCounter()(implicit as: ActorSystem)
+case class OrdersCounter()
     extends KafkaStatefulPipe[OrdersBatch, Counter]()(
       implicitly[DerivedDecoder[Counter]],
-      Counter,
-      as
+      Counter
     ) {
   override def input: KafkaInput[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch]("akka_order_batches", "akka-orders-counter")
+    KafkaInput[OrdersBatch]("fs2_order_batches", "fs2-orders-counter")
   }
 
   override def output: KafkaOutput[Counter] = {
     implicit val encoder: JsonSerializable[Counter] = Counter
-    KafkaOutput[Counter]("akka_orders_counter")
+    KafkaOutput[Counter]("fs2_orders_counter")
   }
 
   override def onEvent(oldState: Counter, event: OrdersBatch): Counter =

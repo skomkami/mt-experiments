@@ -10,7 +10,7 @@ object Dependencies {
     val enumeration = "1.7.0"
     val fs2 = "3.2.4"
     val fs2Kafka = "3.0.0-M4"
-    val kafkaClients = "3.1.0"
+    val kafkaClients = "3.0.0"
     val quicklens = "1.8.2"
     val pureconfig = "0.14.0"
     val scalaTest = "3.2.9"
@@ -101,6 +101,13 @@ object Dependencies {
   }
 
   case object org {
+
+    case object apache {
+      case object kafka {
+        val `kafka-clients` = "org.apache.kafka" % "kafka-clients" % Versions.kafkaClients
+      }
+    }
+
     case object scalacheck {
       val scalacheck =
         "org.scalacheck" %% "scalacheck" % "1.15.4"

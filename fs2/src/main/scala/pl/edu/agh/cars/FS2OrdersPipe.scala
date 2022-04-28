@@ -1,6 +1,7 @@
 package pl.edu.agh.cars
 
 import pl.edu.agh.cars.batcher.OrdersBatcher
+import pl.edu.agh.cars.counter.OrdersCounter
 import pl.edu.agh.cars.laoder.OrdersLoader
 import pl.edu.agh.cars.persistence.OrderBatchesPersistencePipe
 import pl.edu.agh.cars.processor.OrdersProcessor
@@ -13,6 +14,7 @@ case class FS2OrdersPipe(config: Config)
         OrdersLoader("orders.csv"),
         OrdersProcessor(),
         OrdersBatcher(),
-        OrderBatchesPersistencePipe(config.dbConfig)
+        OrderBatchesPersistencePipe(config.dbConfig),
+        OrdersCounter()
       )
     )
