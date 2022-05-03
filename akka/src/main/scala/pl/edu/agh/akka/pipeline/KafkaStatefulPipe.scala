@@ -53,7 +53,7 @@ abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
     implicit val ec: ExecutionContext = actorSystem.dispatcher
     Future
       .successful(
-        KafkaUtil.getCommittedOffset(new TopicPartition(output.topic, 0))
+        KafkaUtil.getLastMsgOffset(new TopicPartition(output.topic, 0))
       )
       .flatMap(_.traverse(readMessageAtOffset))
   }

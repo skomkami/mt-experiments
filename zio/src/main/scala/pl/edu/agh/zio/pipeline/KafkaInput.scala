@@ -1,26 +1,17 @@
 package pl.edu.agh.zio.pipeline
 
 import io.circe.generic.decoding.DerivedDecoder
-import org.apache.kafka.clients.producer.ProducerRecord
 import pl.edu.agh.model.JsonDeserializable
-import zio.ZIO
-import zio.ZLayer
-import zio.ZLayer
-import zio.kafka.consumer._
-import zio.kafka.producer._
-import zio.kafka.serde._
-import org.apache.kafka.clients.producer.ProducerRecord
-import zio.Chunk
-import zio.kafka.consumer.Consumer
-import zio.kafka.consumer.ConsumerSettings
-import zio.kafka.consumer.OffsetBatch
-import zio.kafka.consumer.Subscription
-import zio.kafka.producer.Producer
-import zio.kafka.serde.Deserializer
-import zio.kafka.serde.Serde
+import zio.{Chunk, ZIO, ZLayer}
+import zio.kafka.consumer.{
+  Consumer,
+  ConsumerSettings,
+  OffsetBatch,
+  Subscription
+}
+import zio.kafka.serde.{Deserializer, Serde}
 import zio.stream.ZStream
 
-import scala.util.Failure
 import scala.util.Success
 
 case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
@@ -29,7 +20,7 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
 
   val consumerSettings: ConsumerSettings =
     ConsumerSettings(List("localhost:9092"))
-      .withGroupId(s"zio-$consumerName")
+      .withGroupId(consumerName)
 
   val managedConsumer = Consumer.make(consumerSettings)
 
@@ -56,11 +47,6 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
 
         offsetBatch.commit.as(Chunk(())) *> ZIO.succeed(records)
       }
-//      .tap {
-//        case (Success(record), _) =>
-//          console.putStrLn(record.toString)
-//        case (Failure(err), _) => console.putStrLn(s"error: ${err.getMessage}")
-//      }
       .collect {
         case Success(v) => v
       }

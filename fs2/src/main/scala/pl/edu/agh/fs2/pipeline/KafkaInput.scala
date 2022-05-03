@@ -11,7 +11,7 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
   implicit decoder: JsonDeserializable[T]
 ) extends Input[T] {
 
-  val messageDeserializer = Deserializer.instance { (topic, headers, bytes) =>
+  val messageDeserializer = Deserializer.instance { (_, _, bytes) =>
     val either = decoder.fromJson(new String(bytes))
     IO.fromEither(either)
   }
@@ -21,7 +21,7 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
       valueDeserializer = messageDeserializer
     ).withAutoOffsetReset(AutoOffsetReset.Earliest)
       .withBootstrapServers("localhost:9092")
-      .withGroupId(s"fs2-$consumerName")
+      .withGroupId(consumerName)
       .withCloseTimeout(1.minute)
 
   private val commitOffsetsPipe
