@@ -16,7 +16,7 @@ case class OrdersCounter()
     ) {
   override def input: KafkaInput[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch]("fs2_order_batches", "fs2-orders-counter")
+    KafkaInput[OrdersBatch]("fs2_orders_batch", "fs2-orders-counter")
   }
 
   override def output: KafkaOutput[Counter] = {
