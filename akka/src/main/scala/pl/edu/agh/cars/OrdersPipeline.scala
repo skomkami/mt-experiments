@@ -17,5 +17,6 @@ class OrdersPipeline(config: Config)(implicit as: ActorSystem)
         OrdersBatcher(),
         OrderBatchesPersistencePipe(config.dbConfig),
         OrdersCounter()
-      )
+      ),
+      config.flowsConfig
     )

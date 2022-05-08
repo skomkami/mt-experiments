@@ -1,4 +1,5 @@
 package pl.edu.agh.akka.pipeline
+
 import akka.actor.ActorSystem
 import akka.kafka.scaladsl.Consumer
 import akka.kafka.ConsumerSettings
@@ -36,12 +37,12 @@ abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
       .withGroupId("recover")
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
-  private def readMessageAtOffset(offset: Long): Future[S] = {
+  private def readMessageAtOffset(offset: Long, partition: Int): Future[S] = {
     Consumer
       .plainSource(
         consumerSettings,
         Subscriptions.assignmentWithOffset(
-          new TopicPartition(output.topic, 0) -> (offset - 1)
+          new TopicPartition(output.topic, partition) -> (offset - 1)
         )
       )
       .map(_.value())
@@ -49,12 +50,12 @@ abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
       .runWith(Sink.head)
   }
 
-  override def restore: Future[Option[S]] = {
+  override def restore(partition: Int): Future[Option[S]] = {
     implicit val ec: ExecutionContext = actorSystem.dispatcher
     Future
       .successful(
-        KafkaUtil.getLastMsgOffset(new TopicPartition(output.topic, 0))
+        KafkaUtil.getLastMsgOffset(new TopicPartition(output.topic, partition))
       )
-      .flatMap(_.traverse(readMessageAtOffset))
+      .flatMap(_.traverse(readMessageAtOffset(_, partition)))
   }
 }
