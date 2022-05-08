@@ -9,6 +9,7 @@ import doobie.Transactor
 import doobie.util.transactor.Transactor.Aux
 import pl.edu.agh.common.EntityStore
 import pl.edu.agh.config.DbConfig
+import record.ProcessingRecord
 
 import scala.concurrent.Future
 
@@ -16,7 +17,7 @@ case class PostgresOutput[T](
   config: DbConfig,
   mkStore: Transactor[IO] => EntityStore[IO, T]
 )(implicit as: ActorSystem)
-    extends Output[T] {
+    extends OutputWithOffsetCommit[T] {
 
   private lazy val transactor: Aux[IO, Unit] = Transactor.fromDriverManager[IO](
     driver = config.driver,
@@ -26,10 +27,12 @@ case class PostgresOutput[T](
   )
 
   private lazy val store: EntityStore[IO, T] = mkStore(transactor)
-  override def sink: Sink[T, Future[Done]] =
-    Flow[T]
+  override def elementSink: Sink[ProcessingRecord[T], Future[Done]] =
+    Flow[ProcessingRecord[T]]
       .mapAsync(1) { ent =>
-        store.save(ent).unsafeToFuture() //.map(_ => Done.done())(as.dispatcher)
+        store
+          .save(ent.value)
+          .unsafeToFuture() //.map(_ => Done.done())(as.dispatcher)
       }
       .toMat(Sink.ignore)(Keep.right)
 }

@@ -35,6 +35,35 @@ object KafkaUtil {
     }, fb = Option.apply)
   }
 
+//  def getLastTpsWrittenOffsets(
+//    tps: Set[TopicPartition]
+//  ): Option[scala.collection.immutable.Set[(Int, Long)]] = {
+//    Try {
+//      val properties: Properties = new Properties
+//      properties.put(
+//        AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,
+//        "localhost:9092"
+//      )
+//      val admin: Admin = Admin.create(properties)
+//      val util: Map[TopicPartition, OffsetSpec] =
+//        tps.map(tp => tp -> OffsetSpec.latest()).toMap
+//      val offsetsRes =
+//        admin.listOffsets(util.asJava)
+//      offsetsRes
+//        .all()
+//        .get(1, TimeUnit.SECONDS)
+//        .asScala
+//        .map {
+//          case (tp, offsetAndMeta) =>
+//            tp.partition() -> (offsetAndMeta.offset() - 1)
+//        }
+//        .toSet
+//    }.fold(fa = msg => {
+//      scribe.warn(msg)
+//      None
+//    }, fb = set => Option(set))
+//  }
+
   def getMessageAtOffset(tp: TopicPartition,
                          consumerName: String,
                          offset: Long): Either[Throwable, String] = {
