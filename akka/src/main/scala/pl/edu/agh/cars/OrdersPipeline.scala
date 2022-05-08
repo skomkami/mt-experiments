@@ -12,10 +12,11 @@ import pl.edu.agh.config.Config
 class OrdersPipeline(config: Config)(implicit as: ActorSystem)
     extends Pipeline(
       List(
-        OrdersLoader("orders.csv"), //        OrdersProcessor(),
-//        OrdersBatcher(),
-//        OrderBatchesPersistencePipe(config.dbConfig),
-//        OrdersCounter()
+        OrdersLoader("orders.csv"),
+        OrdersProcessor(),
+        OrdersBatcher(),
+        OrderBatchesPersistencePipe(config.dbConfig),
+        OrdersCounter()
       ),
       config.flowsConfig
     )

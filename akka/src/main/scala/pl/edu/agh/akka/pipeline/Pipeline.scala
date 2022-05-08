@@ -6,9 +6,8 @@ import pl.edu.agh.config.{Config, FlowsConfig}
 
 import scala.concurrent.Future
 
-case class Pipeline(private val pipes: List[Pipe[_, _]], config: FlowsConfig)(
-  implicit val as: ActorSystem
-) {
+case class Pipeline(private[pipeline] val pipes: List[Pipe[_, _]],
+                    config: FlowsConfig)(implicit val as: ActorSystem) {
   def run: Future[Done] = {
     if (!config.isValid) {
       throw new Exception("Invalid flows config")
