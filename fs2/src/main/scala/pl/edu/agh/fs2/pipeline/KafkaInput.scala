@@ -3,7 +3,9 @@ package pl.edu.agh.fs2.pipeline
 import cats.effect.IO
 import fs2.kafka._
 import io.circe.generic.decoding.DerivedDecoder
+import org.apache.kafka.common.TopicPartition
 import pl.edu.agh.model.JsonDeserializable
+import record.ProcessingRecord
 
 import scala.concurrent.duration._
 
@@ -24,15 +26,28 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
       .withGroupId(consumerName)
       .withCloseTimeout(1.minute)
 
-  private val commitOffsetsPipe
-    : fs2.Pipe[IO, CommittableConsumerRecord[IO, String, T], T] =
-    _.map(_.offset)
-      .through(commitBatchWithin[IO](10, 500.millis)) >> fs2.Stream.empty
+//  private val commitOffsetsPipe
+//    : fs2.Pipe[IO, CommittableConsumerRecord[IO, String, T], T] =
+//    _.map(_.offset)
+//      .through(commitBatchWithin[IO](10, 500.millis)) >> fs2.Stream.empty
 
-  override def source: fs2.Stream[IO, T] =
+  override def source(
+    partitions: Set[Int],
+    partitionCount: Int
+  ): fs2.Stream[IO, ProcessingRecord[T]] = {
+    val tps = partitions.map(p => new TopicPartition(topic, p))
     KafkaConsumer
       .stream(consumerSettings)
       .subscribeTo(topic)
-      .records
-      .broadcastThrough[IO, T](commitOffsetsPipe, s1 => s1.map(_.record.value))
+      .flatMap(_.partitionsMapStream)
+      .map(_.toSeq)
+      .flatMap(fs2.Stream.emits)
+      .collect { case (tp, stream) if tps.contains(tp) => stream }
+      .flatMap(identity)
+      .map { cr =>
+        val meta = KafkaRecordMeta(cr.record.partition, cr.offset)
+        record.ProcessingRecord(cr.record.value, Some(meta))
+      }
+  }
+  //      .broadcastThrough[IO, T](commitOffsetsPipe, s1 => s1.map(_.record.value))
 }

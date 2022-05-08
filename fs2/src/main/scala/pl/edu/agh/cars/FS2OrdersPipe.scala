@@ -16,5 +16,6 @@ case class FS2OrdersPipe(config: Config)
         OrdersBatcher(),
         OrderBatchesPersistencePipe(config.dbConfig),
         OrdersCounter()
-      )
+      ),
+      config = config.flowsConfig
     )

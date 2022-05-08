@@ -1,9 +1,15 @@
 package pl.edu.agh.fs2.pipeline
 
 import cats.effect.IO
+import pl.edu.agh.config.FlowsConfig
 
-abstract class Pipeline(private val pipes: List[Pipe[_, _]]) {
+abstract class Pipeline(private[pipeline] val pipes: List[Pipe[_, _]],
+                        config: FlowsConfig) {
   def run: IO[Unit] = {
-    IO.parSequenceN(3)(pipes.map(_.run)).as(())
+    if (!config.isValid) {
+      IO.raiseError(new Throwable("Invalid flows config"))
+    } else {
+      IO.parSequenceN(1)(pipes.map(_.run(config))).as(())
+    }
   }
 }
