@@ -28,6 +28,7 @@ abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
   override def restore(partition: Int): IO[Option[S]] = {
     val tp = new TopicPartition(output.topic, partition)
     IO.blocking(KafkaUtil.getLastMsgOffset(tp))
+      .map(_.filter(_ == 0))
       .flatMap(_.traverse(readMessageAtOffset(tp, _)))
   }
 }

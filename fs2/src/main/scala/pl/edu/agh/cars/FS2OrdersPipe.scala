@@ -8,7 +8,7 @@ import pl.edu.agh.cars.processor.OrdersProcessor
 import pl.edu.agh.config.Config
 import pl.edu.agh.fs2.pipeline.Pipeline
 
-case class FS2OrdersPipe(config: Config)
+class FS2OrdersPipe(config: Config)
     extends Pipeline(
       List(
         OrdersLoader("orders.csv"),
@@ -17,5 +17,5 @@ case class FS2OrdersPipe(config: Config)
         OrderBatchesPersistencePipe(config.dbConfig),
         OrdersCounter()
       ),
-      config = config.flowsConfig
+      flowsConfig = config.flowsConfig
     )

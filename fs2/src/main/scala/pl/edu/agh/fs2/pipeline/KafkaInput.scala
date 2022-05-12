@@ -26,11 +26,6 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
       .withGroupId(consumerName)
       .withCloseTimeout(1.minute)
 
-//  private val commitOffsetsPipe
-//    : fs2.Pipe[IO, CommittableConsumerRecord[IO, String, T], T] =
-//    _.map(_.offset)
-//      .through(commitBatchWithin[IO](10, 500.millis)) >> fs2.Stream.empty
-
   override def source(
     partitions: Set[Int],
     partitionCount: Int
@@ -49,5 +44,4 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
         record.ProcessingRecord(cr.record.value, Some(meta))
       }
   }
-  //      .broadcastThrough[IO, T](commitOffsetsPipe, s1 => s1.map(_.record.value))
 }
