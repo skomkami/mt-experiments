@@ -5,6 +5,8 @@ import org.apache.kafka.common.TopicPartition
 import pl.edu.agh.model.JsonDeserializable
 import pl.edu.agh.util.kafka.KafkaUtil
 import zio.{Task, ZIO}
+import cats.implicits.toTraverseOps
+import zio.interop.catz._
 
 abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
   implicit val decoder: JsonDeserializable[S]
@@ -63,11 +65,10 @@ abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
       }
   }
 
-  override def restore: Task[S] = {
+  override def restore(partition: Int): Task[Option[S]] = {
     val tp = new TopicPartition(output.topic, 0)
     ZIO
-      .fromOption(KafkaUtil.getLastMsgOffset(tp))
-      .mapError(_ => new Throwable("No offset found for $tp"))
-      .flatMap(readMessageAtOffset(tp, _))
+      .effect(KafkaUtil.getLastMsgOffset(tp).filter(_ < 1))
+      .flatMap(_.traverse(readMessageAtOffset(tp, _)))
   }
 }

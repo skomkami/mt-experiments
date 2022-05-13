@@ -2,6 +2,7 @@ package pl.edu.agh.zio.pipeline
 
 import io.circe.generic.decoding.DerivedDecoder
 import pl.edu.agh.model.JsonDeserializable
+import record.ProcessingRecord
 import zio.{Chunk, ZIO, ZLayer}
 import zio.kafka.consumer.{
   Consumer,
@@ -36,23 +37,25 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
       )
   }
 
-  val messageStream =
+  def messageStream(
+    partitions: Set[Int]
+  ): ZStream[Consumer, Throwable, ProcessingRecord[T]] = {
+    val tps: Seq[(String, Int)] = partitions.map(topic -> _).toSeq
     Consumer
-      .subscribeAnd(Subscription.topics(topic))
-      .plainStream(Serde.string, messageSerde.asTry)
-      .map(cr => cr.record.value() -> cr.offset)
-      .mapChunksM { chunk =>
-        val records = chunk.map(_._1)
-        val offsetBatch = OffsetBatch(chunk.map(_._2))
-
-        offsetBatch.commit.as(Chunk(())) *> ZIO.succeed(records)
+      .subscribeAnd(Subscription.manual(tps: _*))
+      .partitionedStream(Serde.string, messageSerde)
+      .flatMap(_._2)
+      .map { record =>
+        val meta = KafkaRecordMeta(record.partition, record.offset)
+        ProcessingRecord(record.value, Some(meta))
       }
-      .collect {
-        case Success(v) => v
-      }
+  }
 
   private val layer = (zio.blocking.Blocking.live ++ zio.clock.Clock.live) >>> (consumer ++ zio.console.Console.live)
 
-  override def source: ZStream[Any, _, T] =
-    messageStream.provideLayer(layer)
+  override def source(
+    partitions: Set[Int],
+    partitionCount: Int
+  ): ZStream[Any, _, ProcessingRecord[T]] =
+    messageStream(partitions).provideLayer(layer)
 }

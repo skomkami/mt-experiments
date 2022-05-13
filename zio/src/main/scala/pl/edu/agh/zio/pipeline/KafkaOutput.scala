@@ -4,6 +4,8 @@ import io.circe.generic.encoding.DerivedAsObjectEncoder
 import izumi.reflect.Tag
 import org.apache.kafka.clients.producer.ProducerRecord
 import pl.edu.agh.model.JsonSerializable
+import record.ProcessingRecord
+import zio.Task
 import zio.ZIO
 import zio.ZLayer
 import zio.blocking.Blocking
@@ -14,14 +16,14 @@ import zio.stream.ZSink
 
 case class KafkaOutput[T: DerivedAsObjectEncoder: Tag](topic: String)(
   implicit encoder: JsonSerializable[T]
-) extends Output[T] {
+) extends OutputWithOffsetCommit[T] {
   val producerSettings: ProducerSettings = ProducerSettings(
     List("localhost:9092")
   )
 
   val messageSerializer: Serializer[Any, T] = Serializer.string.contramapM {
     messageAsObj =>
-      ZIO.effect(encoder.toJson(messageAsObj))
+      ZIO.effectTotal(encoder.toJson(messageAsObj))
   }
 
   private val managedProducer =
@@ -33,12 +35,12 @@ case class KafkaOutput[T: DerivedAsObjectEncoder: Tag](topic: String)(
   private val producer: ZLayer[Blocking, Throwable, Producer[Any, String, T]] =
     ZLayer.fromManaged(managedProducer)
 
-  override def sink: ZSink[Any, _, T, _, _] =
-    ZSink.foreach { (msg: T) =>
-      val record = new ProducerRecord[String, T](topic, msg)
-      val producerEffect = Producer.produce[Any, String, T](record)
-      producerEffect
-        .provideLayer(producer)
-        .provideLayer(Blocking.live)
-    }
+  override def outputEffect(record: ProcessingRecord[T]): Task[_] = {
+    val partition = record.meta.map(_.partition).getOrElse(0)
+    val pr = new ProducerRecord[String, T](topic, partition, null, record.value)
+    val producerEffect = Producer.produce[Any, String, T](pr)
+    producerEffect
+      .provideLayer(producer)
+      .provideLayer(Blocking.live)
+  }
 }

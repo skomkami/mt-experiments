@@ -5,4 +5,9 @@ kafka-console-producer \
    --property key.separator=,
 
 
+docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --create --topic zio_order_batch --replication-factor 1 --partitions 4
+docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --create --topic zio_orders --replication-factor 1 --partitions 4
+docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --create --topic zio_orders_counter --replication-factor 1 --partitions 4
+docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --create --topic zio_processed_orders --replication-factor 1 --partitions 4
+
 b91a7348-f9f0-4100-989a-cbdd2a198096,{"id":"b91a7348-f9f0-4100-989a-cbdd2a198096", "x":3.15, "y": 2.52}

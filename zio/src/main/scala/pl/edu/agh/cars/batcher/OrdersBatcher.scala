@@ -1,5 +1,6 @@
 package pl.edu.agh.cars.batcher
 
+import pl.edu.agh.config.FlowsConfig
 import pl.edu.agh.model.JsonDeserializable
 import pl.edu.agh.model.JsonSerializable
 import pl.edu.agh.model.OrdersBatch
@@ -9,8 +10,9 @@ import pl.edu.agh.zio.pipeline.KafkaInput
 import pl.edu.agh.zio.pipeline.KafkaOutput
 import pl.edu.agh.zio.pipeline.Output
 import pl.edu.agh.zio.pipeline.Pipe
+import record.ProcessingRecord
 import zio.ZIO
-import zio.stream.ZTransducer
+import zio.stream.{Sink, ZStream, ZTransducer}
 
 case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
 
@@ -24,15 +26,30 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
     KafkaOutput[OrdersBatch]("zio_order_batch")
   }
 
-  override def run: ZIO[Any, _, _] =
-    input.source
-      .aggregate(
-        ZTransducer.foldWeighted[ProcessedOrder, OrdersBatch](
-          OrdersBatch.empty
-        )((acc, order) => (acc.totalAmount + order.totalUSD).toLong, 200000)(
-          _ add _
-        )
-      )
-      .run(output.sink)
+  override def run: ZIO[FlowsConfig, _, _] = {
+    ZIO.access.apply { flowsConfig =>
+      val partitionAssignment = flowsConfig.partitionAssignment
+      ZStream
+        .fromIterable(partitionAssignment)
+        .mapMPar(flowsConfig.parallelism) {
+          case (_, partitions) =>
+            input
+              .source(partitions, partitions.size)
+              .aggregate(
+                ZTransducer
+                  .foldWeighted[
+                    ProcessingRecord[ProcessedOrder],
+                    ProcessingRecord[OrdersBatch]
+                  ](ProcessingRecord(OrdersBatch.empty))({
+                    case (_, single) => single.value.totalUSD.toInt
+                  }, 200000) {
+                    case (batch, single) => single.map(batch.value.add)
+                  }
+              )
+              .run(output.sink)
+        }
+        .run(Sink.count)
+    }
+  }
 
 }
