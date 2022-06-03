@@ -3,6 +3,7 @@ import record.ProcessingRecord
 import zio.Task
 import zio.ZManaged
 import zio.stream.ZStream
+import zio.console.putStrLn
 
 case class FileInput(path: String) extends Input[String] {
   override def source(
@@ -21,5 +22,11 @@ case class FileInput(path: String) extends Input[String] {
       .filter {
         case (_, i) => partitions.contains(i)
       }
+      .tap {
+        case (_, i) =>
+          println(s"File input partition: $i")
+          putStrLn(s"File input partition: $i")
+      }
       .map((ProcessingRecord.partitioned[String] _).tupled)
+      .provideLayer(zio.console.Console.live)
 }

@@ -40,7 +40,12 @@ object KafkaUtil {
 
   def createTopics(topics: List[NewTopic]): Unit = {
     val res = admin.createTopics(topics.asJava)
-    res.values().forEach((x, _) => scribe.info(s"Created topic: $x"))
+    res
+      .values()
+      .forEach((x, f) => {
+        f.get()
+        scribe.info(s"Created topic: $x")
+      })
   }
 
 //  def getLastTpsWrittenOffsets(

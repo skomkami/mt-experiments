@@ -10,8 +10,10 @@ abstract class OutputWithOffsetCommit[T] extends Output[T] {
   private val commitSink: ZSink[Any, _, ProcessingRecord[T], _, _] = {
     ZSink.foreach { (record: ProcessingRecord[T]) =>
       record.meta match {
-        case Some(meta: KafkaRecordMeta) => meta.committableOffset.commit
-        case _                           => Task.unit
+        case Some(meta: KafkaRecordMeta) =>
+          meta.committableOffset.commit
+        case _ =>
+          Task.unit
       }
     }
   }

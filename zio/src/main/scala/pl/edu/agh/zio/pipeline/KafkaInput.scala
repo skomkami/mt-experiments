@@ -44,9 +44,12 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
     Consumer
       .subscribeAnd(Subscription.manual(tps: _*))
       .partitionedStream(Serde.string, messageSerde)
-      .flatMap(_._2)
+      .flatMapPar(partitions.size)(_._2)
       .map { record =>
         val meta = KafkaRecordMeta(record.partition, record.offset)
+        println(
+          s"Kafka input - topic: $topic, partition: ${record.partition}, offset: ${record.offset}"
+        )
         ProcessingRecord(record.value, Some(meta))
       }
   }

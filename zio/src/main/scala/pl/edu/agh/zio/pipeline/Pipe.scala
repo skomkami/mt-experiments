@@ -31,12 +31,16 @@ abstract class StatelessPipe[In, Out] extends Pipe[In, Out] {
   def run: ZIO[FlowsConfig, _, _] = {
     ZIO.accessM.apply { flowsConfig =>
       val partitionAssignment = flowsConfig.partitionAssignment
+      println(s"running flow - ${this.getClass.getSimpleName}")
       ZStream
         .fromIterable(partitionAssignment)
         .mapMPar(flowsConfig.parallelism) {
-          case (_, partitions) =>
+          case (node, partitions) =>
+            println(
+              s"running flow - ${this.getClass.getSimpleName}, node: $node"
+            )
             input
-              .source(partitions, partitions.size)
+              .source(partitions, flowsConfig.partitionsCount)
               .map(_.map(onEvent))
               .run(output.sink)
         }
@@ -59,15 +63,20 @@ abstract class StatefulPipe[In, S] extends Pipe[In, S] {
   }
 
   def run: ZIO[FlowsConfig, _, _] = {
-    ZIO.access.apply { flowsConfig =>
+    ZIO.accessM.apply { flowsConfig =>
       val partitionAssignment = flowsConfig.partitionAssignment
+      val par = flowsConfig.parallelism
+      println(s"running flow - ${this.getClass.getSimpleName}")
       ZStream
         .fromIterable(partitionAssignment)
         .flatMapPar(flowsConfig.parallelism) {
-          case (_, partitions) =>
+          case (node, partitions) =>
+            println(
+              s"running flow - ${this.getClass.getSimpleName}, node: $node"
+            )
             ZStream
               .fromIterable(partitions)
-              .mapM(p => restore(p).map(restored => p -> restored))
+              .mapMPar(par)(p => restore(p).map(restored => p -> restored))
               .map {
                 case (p, Some(restored)) =>
                   input
@@ -78,7 +87,7 @@ abstract class StatefulPipe[In, S] extends Pipe[In, S] {
                     .source(Set(p), flowsConfig.partitionsCount)
                     .seedScan(_.map(onInit))(onRecord)
               }
-              .mapM(_.run(output.sink))
+              .mapMPar[Any, Any, Any](par)(_.run(output.sink))
         }
         .run(Sink.count)
     }
