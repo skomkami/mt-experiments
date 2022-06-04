@@ -15,5 +15,5 @@ class OrdersPipeline
         OrdersBatcher(),
         OrderBatchesPersistencePipe(),
         OrdersCounter()
-      )
+      ),
     )

@@ -39,7 +39,7 @@ case class OrdersBatcher()(implicit as: ActorSystem)
             .source(partitions, flowsConfig.partitionsCount)
             .batchWeighted[ProcessingRecord[OrdersBatch]](
               200000 * precision,
-              _.value.totalUSD.precision.toLong,
+              r => (r.value.totalUSD * precision).toLong,
               _.map(OrdersBatch.empty.add)
             ) { case (batch, single) => single.map(batch.value.add) }
             .runWith(output.sink)

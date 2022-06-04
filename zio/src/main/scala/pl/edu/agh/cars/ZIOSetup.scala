@@ -2,10 +2,11 @@ package pl.edu.agh.cars
 
 import pl.edu.agh.config.Config
 import pl.edu.agh.config.configuration.Configuration
-import zio._
+import pl.edu.agh.zio.pipeline.KafkaTopicsSetup
+import zio.{App, ExitCode, URIO, ZIO}
 import zio.console.Console
 
-object ZIOMain extends App {
+object ZIOSetup extends App {
   def run(args: List[String]): URIO[Any with Console, ExitCode] = {
 
     val layer = Configuration.live
@@ -13,8 +14,10 @@ object ZIOMain extends App {
 
     val run = for {
       config <- ZIO.fromFunctionM[Configuration, Throwable, Config](_.get.load)
-      pipeline <- pipeline.run.provide(config.flowsConfig)
-    } yield pipeline
+      setup <- KafkaTopicsSetup
+        .setupKafkaTopicsForPipeline(pipeline)
+        .provide(config.flowsConfig)
+    } yield setup
 
     run.provideLayer(layer).exitCode
   }
