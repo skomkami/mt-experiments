@@ -12,8 +12,10 @@ import pl.edu.agh.parser.CsvOrdersParser
 
 case class OrdersLoader(filename: String)
     extends StatelessPipe[String, PlainOrder] {
-  override def onEvent(event: String): PlainOrder =
-    CsvOrdersParser.fromString(event)
+  override def onEvent(event: String): PlainOrder = {
+    val x = CsvOrdersParser.fromString(event)
+    x
+  }
 
   override def input: Input[String] = FileInput(filename)
 

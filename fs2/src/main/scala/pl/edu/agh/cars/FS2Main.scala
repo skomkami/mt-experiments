@@ -9,7 +9,7 @@ object FS2Main extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
     IO.blocking(ConfigSource.default.loadOrThrow[Config])
-      .map(FS2OrdersPipe.apply)
+      .map(new FS2OrdersPipe(_))
       .flatMap(_.run)
       .as(ExitCode.Success)
   }

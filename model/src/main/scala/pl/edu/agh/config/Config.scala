@@ -7,7 +7,7 @@ case class FlowsConfig(parallelism: Int, partitionsCount: Int) {
     parallelism <= partitionsCount && partitionsCount % parallelism == 0
 
   lazy val partitionAssignment: List[(Int, Set[Int])] = {
-    (0 to partitionsCount)
+    (0 until partitionsCount)
       .grouped(partitionsCount / parallelism)
       .toList
       .map(_.toSet)

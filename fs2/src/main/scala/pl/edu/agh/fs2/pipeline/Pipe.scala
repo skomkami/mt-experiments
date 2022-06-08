@@ -2,28 +2,47 @@ package pl.edu.agh.fs2.pipeline
 
 import cats.effect.IO
 import fs2.{Stream, Pipe => FS2Pipe}
+import pl.edu.agh.config.FlowsConfig
+import record.ProcessingRecord
 import utils.SeedScan._
 
 trait Input[T] {
-  def source: Stream[IO, T]
+  def source(partitions: Set[Int],
+             partitionsCount: Int): Stream[IO, ProcessingRecord[T]]
 }
 
 trait Output[T] {
-  def sink: FS2Pipe[IO, T, _]
+  def sink: FS2Pipe[IO, ProcessingRecord[T], _]
 }
 
 trait Pipe[In, Out] {
   def input: Input[In]
   def output: Output[Out]
 
-  def run: IO[_]
+  def run(flowsConfig: FlowsConfig): IO[_]
 }
 
 abstract class StatelessPipe[In, Out] extends Pipe[In, Out] {
   def onEvent(event: In): Out
 
-  def run: IO[_] = {
-    input.source.map(onEvent).through(output.sink).compile.drain
+  def run(flowsConfig: FlowsConfig): IO[_] = {
+    val partitionAssignment = flowsConfig.partitionAssignment
+    println(s"running flow - ${this.getClass.getSimpleName}")
+
+    Stream
+      .emits(partitionAssignment)
+      .map {
+        case (node, partitions) =>
+          println(s"Flow - ${this.getClass.getSimpleName}, node: $node")
+
+          input
+            .source(partitions, flowsConfig.partitionsCount)
+            .map(_.map(onEvent))
+            .through(output.sink)
+      }
+      .parJoin(flowsConfig.parallelism)
+      .compile
+      .drain
   }
 }
 
@@ -33,16 +52,39 @@ abstract class StatefulPipe[In, S] extends Pipe[In, S] {
 
   def onInit(event: In): S
 
-  def restore: IO[Option[S]]
+  def restore(partition: Int): IO[Option[S]]
 
-  def run: IO[_] = {
-    restore
+  private def onRecord(oldState: ProcessingRecord[S],
+                       record: ProcessingRecord[In]): ProcessingRecord[S] = {
+    record.map(onEvent(oldState.value, _))
+  }
+
+  def run(flowsConfig: FlowsConfig): IO[_] = {
+    val partitionAssignment = flowsConfig.partitionAssignment
+    Stream
+      .emits(partitionAssignment)
       .map {
-        case Some(restored) =>
-          input.source.scan(restored)(onEvent)
-        case None =>
-          input.source.seedScan(onInit)(onEvent)
+        case (_, partitions) =>
+          Stream
+            .emits(partitions.toSeq)
+            .mapAsync[IO, (Int, Option[S])](partitions.size)(
+              p => restore(p).map(restored => p -> restored)
+            )
+            .map {
+              case (p, Some(restored)) =>
+                input
+                  .source(Set(p), flowsConfig.partitionsCount)
+                  .scan(ProcessingRecord.partitioned(restored, p))(onRecord)
+              case (p, None) =>
+                input
+                  .source(Set(p), flowsConfig.partitionsCount)
+                  .seedScan(_.map(onInit))(onRecord)
+            }
+            .map(_.through(output.sink))
+            .parJoin(partitions.size)
       }
-      .flatMap(_.through(output.sink).compile.drain)
+      .parJoin(flowsConfig.parallelism)
+      .compile
+      .drain
   }
 }
