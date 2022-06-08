@@ -1,9 +1,9 @@
 package pl.edu.agh.fs2.pipeline
 
+import cats.data.NonEmptySet
 import cats.effect.IO
 import fs2.kafka._
 import io.circe.generic.decoding.DerivedDecoder
-import org.apache.kafka.common.TopicPartition
 import pl.edu.agh.model.JsonDeserializable
 import record.ProcessingRecord
 
@@ -30,16 +30,26 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
     partitions: Set[Int],
     partitionCount: Int
   ): fs2.Stream[IO, ProcessingRecord[T]] = {
-    val tps = partitions.map(p => new TopicPartition(topic, p))
+    val partitionsSortedSet = collection.immutable.SortedSet.from(partitions)
     KafkaConsumer
       .stream(consumerSettings)
-      .subscribeTo(topic)
-      .flatMap(_.partitionsMapStream)
-      .map(_.toSeq)
-      .flatMap(fs2.Stream.emits)
-      .collect { case (tp, stream) if tps.contains(tp) => stream }
+      .evalTap(_.assign(topic, NonEmptySet.fromSetUnsafe(partitionsSortedSet)))
+      .map(_.partitionsMapStream)
       .flatMap(identity)
+      .map { mapPartitionStream =>
+        mapPartitionStream.collect {
+          case (tp, stream) if partitions.contains(tp.partition()) =>
+            println(s"reading partition: $tp, $consumerName")
+            stream
+        }.toSeq
+      }
+      .filter(_.nonEmpty)
+      .flatMap(fs2.Stream.emits)
+      .parJoinUnbounded
       .map { cr =>
+        println(
+          s"reading topic: $topic, partition: ${cr.record.partition}, group: $consumerName"
+        )
         val meta = KafkaRecordMeta(cr.record.partition, cr.offset)
         record.ProcessingRecord(cr.record.value, Some(meta))
       }

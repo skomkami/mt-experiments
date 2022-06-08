@@ -9,7 +9,10 @@ case class Pipeline(private[pipeline] val pipes: List[Pipe[_, _]],
     if (!flowsConfig.isValid) {
       IO.raiseError(new Throwable("Invalid flows config"))
     } else {
-      IO.parSequenceN(pipes.size)(pipes.map(_.run(flowsConfig))).as(())
+      IO.parSequenceN(pipes.size * flowsConfig.parallelism)(
+          pipes.map(_.run(flowsConfig))
+        )
+        .as(())
     }
   }
 }

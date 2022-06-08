@@ -29,8 +29,8 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
     val partitionAssignment = flowsConfig.partitionAssignment
     Stream
       .emits(partitionAssignment)
-      .mapAsyncUnordered[IO, Unit](flowsConfig.parallelism) {
-        case (_, partitions) =>
+      .map {
+        case (node, partitions) =>
           input
             .source(partitions, flowsConfig.partitionsCount)
             .groupUntil(ProcessingRecord(OrdersBatch.empty)) {
@@ -38,9 +38,8 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
                 batch.totalAmount + order.totalUSD <= 200000
             } { case (batch, single) => single.map(batch.value.add) }
             .through(output.sink)
-            .compile
-            .drain
       }
+      .parJoin(flowsConfig.parallelism)
       .compile
       .drain
   }

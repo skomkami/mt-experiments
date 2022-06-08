@@ -27,17 +27,20 @@ abstract class StatelessPipe[In, Out] extends Pipe[In, Out] {
 
   def run(flowsConfig: FlowsConfig): IO[_] = {
     val partitionAssignment = flowsConfig.partitionAssignment
+    println(s"running flow - ${this.getClass.getSimpleName}")
+
     Stream
       .emits(partitionAssignment)
-      .mapAsyncUnordered[IO, Unit](flowsConfig.parallelism) {
-        case (_, partitions) =>
+      .map {
+        case (node, partitions) =>
+          println(s"Flow - ${this.getClass.getSimpleName}, node: $node")
+
           input
             .source(partitions, flowsConfig.partitionsCount)
             .map(_.map(onEvent))
             .through(output.sink)
-            .compile
-            .drain
       }
+      .parJoin(flowsConfig.parallelism)
       .compile
       .drain
   }
@@ -60,11 +63,11 @@ abstract class StatefulPipe[In, S] extends Pipe[In, S] {
     val partitionAssignment = flowsConfig.partitionAssignment
     Stream
       .emits(partitionAssignment)
-      .mapAsyncUnordered[IO, Unit](flowsConfig.parallelism) {
+      .map {
         case (_, partitions) =>
           Stream
             .emits(partitions.toSeq)
-            .mapAsync[IO, (Int, Option[S])](1)(
+            .mapAsync[IO, (Int, Option[S])](partitions.size)(
               p => restore(p).map(restored => p -> restored)
             )
             .map {
@@ -77,10 +80,10 @@ abstract class StatefulPipe[In, S] extends Pipe[In, S] {
                   .source(Set(p), flowsConfig.partitionsCount)
                   .seedScan(_.map(onInit))(onRecord)
             }
-            .flatMap(_.through(output.sink))
-            .compile
-            .drain
+            .map(_.through(output.sink))
+            .parJoin(partitions.size)
       }
+      .parJoin(flowsConfig.parallelism)
       .compile
       .drain
   }
