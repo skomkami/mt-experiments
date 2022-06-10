@@ -7,10 +7,10 @@ import pl.edu.agh.cars.persistence.OrderBatchesPersistencePipe
 import pl.edu.agh.cars.processor.OrdersProcessor
 import pl.edu.agh.zio.pipeline.Pipeline
 
-class OrdersPipeline
+class OrdersPipeline(inputFilePath: String)
     extends Pipeline(
       List(
-        OrdersLoader("orders.csv"),
+        OrdersLoader(inputFilePath),
         OrdersProcessor(),
         OrdersBatcher(),
         OrderBatchesPersistencePipe(),

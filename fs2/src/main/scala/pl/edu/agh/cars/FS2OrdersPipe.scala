@@ -11,7 +11,7 @@ import pl.edu.agh.fs2.pipeline.Pipeline
 class FS2OrdersPipe(config: Config)
     extends Pipeline(
       List(
-        OrdersLoader("orders.csv"),
+        OrdersLoader(config.inputFilePath),
         OrdersProcessor(),
         OrdersBatcher(),
         OrderBatchesPersistencePipe(config.dbConfig),
