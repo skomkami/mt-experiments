@@ -47,14 +47,11 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
       .flatMapPar(partitions.size)(_._2)
       .map { record =>
         val meta = KafkaRecordMeta(record.partition, record.offset)
-        println(
-          s"Kafka input - topic: $topic, partition: ${record.partition}, offset: ${record.offset}"
-        )
         ProcessingRecord(record.value, Some(meta))
       }
   }
 
-  private val layer = (zio.blocking.Blocking.live ++ zio.clock.Clock.live) >>> (consumer ++ zio.console.Console.live)
+  private val layer = (zio.blocking.Blocking.live ++ zio.clock.Clock.live) >>> consumer
 
   override def source(
     partitions: Set[Int],

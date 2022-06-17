@@ -29,21 +29,12 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
   override def run: ZIO[FlowsConfig, _, _] = {
     ZIO.accessM.apply { flowsConfig =>
       val partitionAssignment = flowsConfig.partitionAssignment
-      println(s"running flow - ${this.getClass.getSimpleName}")
       ZStream
         .fromIterable(partitionAssignment)
         .mapMPar(flowsConfig.parallelism) {
           case (node, partitions) =>
-            println(
-              s"running flow - ${this.getClass.getSimpleName}, node: $node"
-            )
             input
               .source(partitions, flowsConfig.partitionsCount)
-              .tap(
-                g =>
-                  zio.console
-                    .putStrLn(s"OrdersBatcher: ${g.meta.map(_.partition)}")
-              )
               .aggregate(
                 ZTransducer
                   .foldWeighted[
@@ -56,7 +47,6 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
                   }
               )
               .run(output.sink)
-              .provideLayer(zio.console.Console.live)
         }
         .run(Sink.count)
     }

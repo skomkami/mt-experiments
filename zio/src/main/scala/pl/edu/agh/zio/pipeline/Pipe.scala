@@ -28,17 +28,13 @@ trait Pipe[In, Out] {
 abstract class StatelessPipe[In, Out] extends Pipe[In, Out] {
   def onEvent(event: In): Out
 
-  def run: ZIO[FlowsConfig, _, _] = {
+  def run: ZIO[FlowsConfig, _, _] =
     ZIO.accessM.apply { flowsConfig =>
       val partitionAssignment = flowsConfig.partitionAssignment
-      println(s"running flow - ${this.getClass.getSimpleName}")
-      ZStream
+      ZStream //4
         .fromIterable(partitionAssignment)
         .mapMPar(flowsConfig.parallelism) {
-          case (node, partitions) =>
-            println(
-              s"running flow - ${this.getClass.getSimpleName}, node: $node"
-            )
+          case (_, partitions) =>
             input
               .source(partitions, flowsConfig.partitionsCount)
               .map(_.map(onEvent))
@@ -46,7 +42,7 @@ abstract class StatelessPipe[In, Out] extends Pipe[In, Out] {
         }
         .run(Sink.count)
     }
-  }
+
 }
 
 abstract class StatefulPipe[In, S] extends Pipe[In, S] {
@@ -66,14 +62,10 @@ abstract class StatefulPipe[In, S] extends Pipe[In, S] {
     ZIO.accessM.apply { flowsConfig =>
       val partitionAssignment = flowsConfig.partitionAssignment
       val par = flowsConfig.parallelism
-      println(s"running flow - ${this.getClass.getSimpleName}")
       ZStream
         .fromIterable(partitionAssignment)
         .flatMapPar(flowsConfig.parallelism) {
-          case (node, partitions) =>
-            println(
-              s"running flow - ${this.getClass.getSimpleName}, node: $node"
-            )
+          case (_, partitions) =>
             ZStream
               .fromIterable(partitions)
               .mapMPar(par)(p => restore(p).map(restored => p -> restored))

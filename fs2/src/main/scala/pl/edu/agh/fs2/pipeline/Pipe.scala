@@ -27,14 +27,10 @@ abstract class StatelessPipe[In, Out] extends Pipe[In, Out] {
 
   def run(flowsConfig: FlowsConfig): IO[_] = {
     val partitionAssignment = flowsConfig.partitionAssignment
-    println(s"running flow - ${this.getClass.getSimpleName}")
-
     Stream
       .emits(partitionAssignment)
       .map {
-        case (node, partitions) =>
-          println(s"Flow - ${this.getClass.getSimpleName}, node: $node")
-
+        case (_, partitions) =>
           input
             .source(partitions, flowsConfig.partitionsCount)
             .map(_.map(onEvent))

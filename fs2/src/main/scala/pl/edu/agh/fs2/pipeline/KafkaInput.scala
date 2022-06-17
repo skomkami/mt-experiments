@@ -34,22 +34,9 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
     KafkaConsumer
       .stream(consumerSettings)
       .evalTap(_.assign(topic, NonEmptySet.fromSetUnsafe(partitionsSortedSet)))
-      .map(_.partitionsMapStream)
-      .flatMap(identity)
-      .map { mapPartitionStream =>
-        mapPartitionStream.collect {
-          case (tp, stream) if partitions.contains(tp.partition()) =>
-            println(s"reading partition: $tp, $consumerName")
-            stream
-        }.toSeq
-      }
-      .filter(_.nonEmpty)
-      .flatMap(fs2.Stream.emits)
+      .partitionedRecords
       .parJoinUnbounded
       .map { cr =>
-        println(
-          s"reading topic: $topic, partition: ${cr.record.partition}, group: $consumerName"
-        )
         val meta = KafkaRecordMeta(cr.record.partition, cr.offset)
         record.ProcessingRecord(cr.record.value, Some(meta))
       }

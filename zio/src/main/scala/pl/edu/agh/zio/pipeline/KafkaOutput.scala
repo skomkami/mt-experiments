@@ -37,7 +37,6 @@ case class KafkaOutput[T: DerivedAsObjectEncoder: Tag](topic: String)(
 
   override def outputEffect(record: ProcessingRecord[T]): Task[_] = {
     val partition = record.meta.map(_.partition).getOrElse(0)
-    println(s"output partition: $partition")
     val pr = new ProducerRecord[String, T](topic, partition, null, record.value)
     val producerEffect = Producer.produce[Any, String, T](pr)
     producerEffect

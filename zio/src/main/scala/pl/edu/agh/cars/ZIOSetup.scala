@@ -10,10 +10,10 @@ object ZIOSetup extends App {
   def run(args: List[String]): URIO[Any with Console, ExitCode] = {
 
     val layer = Configuration.live
-    val pipeline = new OrdersPipeline
 
     val run = for {
       config <- ZIO.fromFunctionM[Configuration, Throwable, Config](_.get.load)
+      pipeline = new OrdersPipeline(config.inputFilePath)
       setup <- KafkaTopicsSetup
         .setupKafkaTopicsForPipeline(pipeline)
         .provide(config.flowsConfig)
