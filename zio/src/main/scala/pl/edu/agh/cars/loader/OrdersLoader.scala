@@ -6,6 +6,7 @@ import pl.edu.agh.zio.pipeline._
 
 case class OrdersLoader(filename: String)
     extends StatelessPipe[String, PlainOrder] {
+
   override def name: String = "zio-orders-loader"
 
   override def input: Input[String] = FileInput(filename)

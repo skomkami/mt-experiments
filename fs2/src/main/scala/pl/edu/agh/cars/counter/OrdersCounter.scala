@@ -1,6 +1,8 @@
 package pl.edu.agh.cars.counter
 
 import io.circe.generic.decoding.DerivedDecoder
+import performancetest.BATCH_ERROR
+import performancetest.STOP_AT_ID
 import pl.edu.agh.common.Counter
 import pl.edu.agh.fs2.pipeline.KafkaInput
 import pl.edu.agh.fs2.pipeline.KafkaOutput
@@ -18,7 +20,11 @@ case class OrdersCounter()
 
   override def input: KafkaInput[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch]("fs2_orders_batch", name)
+    KafkaInput[OrdersBatch](
+      "fs2_orders_batch",
+      name,
+      r => r.orders.last.id == STOP_AT_ID - BATCH_ERROR
+    )
   }
 
   override def output: KafkaOutput[Counter] = {

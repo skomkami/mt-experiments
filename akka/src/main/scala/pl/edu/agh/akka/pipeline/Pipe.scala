@@ -23,6 +23,7 @@ trait Pipe[In, Out] {
   def output: Output[Out]
 
   def name: String
+
   def run(flowsConfig: FlowsConfig)(implicit mat: Materializer): Future[Done]
 }
 

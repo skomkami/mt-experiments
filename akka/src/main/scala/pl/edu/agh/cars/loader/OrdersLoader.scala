@@ -18,4 +18,6 @@ case class OrdersLoader(filename: String)(implicit as: ActorSystem)
 
   override def onEvent(event: String): PlainOrder =
     CsvOrdersParser.fromString(event)
+
+  override def name: String = "orders-loader"
 }

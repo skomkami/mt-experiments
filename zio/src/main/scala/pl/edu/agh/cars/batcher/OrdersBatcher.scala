@@ -1,5 +1,6 @@
 package pl.edu.agh.cars.batcher
 
+import performancetest.STOP_AT_ID
 import pl.edu.agh.config.FlowsConfig
 import pl.edu.agh.model.JsonDeserializable
 import pl.edu.agh.model.JsonSerializable
@@ -19,7 +20,11 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
 
   override def input: Input[ProcessedOrder] = {
     implicit val decoder: JsonDeserializable[ProcessedOrder] = ProcessedOrder
-    KafkaInput[ProcessedOrder]("zio_processed_orders", name)
+    KafkaInput[ProcessedOrder](
+      "zio_processed_orders",
+      name,
+      r => r.id == STOP_AT_ID
+    )
   }
 
   override def output: Output[OrdersBatch] = {

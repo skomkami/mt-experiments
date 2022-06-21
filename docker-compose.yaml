@@ -36,22 +36,22 @@ services:
     networks:
       - mt_experiments_network
 
-  akhq:
-    image: tchiotludo/akhq:dev
-    container_name: 'kafka-client'
-    ports:
-      - "8080:8080"
-    environment:
-      AKHQ_CONFIGURATION: |
-        akhq:
-          connections:
-            docker-kafka-server:
-              properties:
-                bootstrap.servers: "kafka:9092"
-    networks:
-      - mt_experiments_network
-    links:
-      - kafka
+#  akhq:
+#    image: tchiotludo/akhq:dev
+#    container_name: 'kafka-client'
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      AKHQ_CONFIGURATION: |
+#        akhq:
+#          connections:
+#            docker-kafka-server:
+#              properties:
+#                bootstrap.servers: "kafka:9092"
+#    networks:
+#      - mt_experiments_network
+#    links:
+#      - kafka
 
   postgres:
     image: postgres

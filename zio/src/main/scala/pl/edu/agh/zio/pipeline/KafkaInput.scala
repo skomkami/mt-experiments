@@ -15,9 +15,12 @@ import zio.stream.ZStream
 
 import scala.util.Success
 
-case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
-  implicit decoder: JsonDeserializable[T]
-) extends Input[T] {
+case class KafkaInput[T: DerivedDecoder](
+  topic: String,
+  consumerName: String,
+  shutdownWhen: T => Boolean = (_: T) => false
+)(implicit decoder: JsonDeserializable[T])
+    extends Input[T] {
 
   val consumerSettings: ConsumerSettings =
     ConsumerSettings(List("localhost:9092"))
@@ -48,6 +51,11 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
       .map { record =>
         val meta = KafkaRecordMeta(record.partition, record.offset)
         ProcessingRecord(record.value, Some(meta))
+      }
+      .tap { r =>
+        if (shutdownWhen(r.value)) {
+          ZIO.accessM.apply(_.get.stopConsumption)
+        } else { ZIO.unit }
       }
   }
 

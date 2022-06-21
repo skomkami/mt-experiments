@@ -1,5 +1,7 @@
 package pl.edu.agh.cars.persistence
 
+import performancetest.BATCH_ERROR
+import performancetest.STOP_AT_ID
 import pl.edu.agh.cars.persistence.persistence.Persistence
 import pl.edu.agh.common.OrdersStore
 import pl.edu.agh.model.JsonDeserializable
@@ -23,7 +25,11 @@ case class OrderBatchesPersistencePipe()
 
   override def input: Input[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch]("zio_order_batch", name)
+    KafkaInput[OrdersBatch](
+      "zio_order_batch",
+      name,
+      r => r.orders.last.id == STOP_AT_ID - BATCH_ERROR
+    )
   }
 
   override def output: Output[OrdersBatch] =

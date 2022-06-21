@@ -88,6 +88,12 @@ lazy val baseLibraries = Seq(
 lazy val commonSettings = Seq(
   update / evictionWarningOptions := EvictionWarningOptions.empty,
   libraryDependencies ++= baseLibraries,
+  excludeDependencies ++= Seq(
+    ExclusionRule("log4j", "log4j"),
+    ExclusionRule("org.slf4j", "slf4j-log4j12"),
+    ExclusionRule("org.slf4j", "slf4j-simple"),
+    ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl")
+  ),
   libraryDependencies ++= baseLibraries.map(_ % Test),
   Compile / console / scalacOptions --= Seq("-Wunused:_", "-Xfatal-warnings"),
   Test / console / scalacOptions :=

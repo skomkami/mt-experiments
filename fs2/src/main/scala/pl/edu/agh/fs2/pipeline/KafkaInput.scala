@@ -7,11 +7,12 @@ import io.circe.generic.decoding.DerivedDecoder
 import pl.edu.agh.model.JsonDeserializable
 import record.ProcessingRecord
 
-import scala.concurrent.duration._
-
-case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
-  implicit decoder: JsonDeserializable[T]
-) extends Input[T] {
+case class KafkaInput[T: DerivedDecoder](
+  topic: String,
+  consumerName: String,
+  shutdownWhen: T => Boolean = (_: T) => false
+)(implicit decoder: JsonDeserializable[T])
+    extends Input[T] {
 
   val messageDeserializer = Deserializer.instance { (_, _, bytes) =>
     val either = decoder.fromJson(new String(bytes))
@@ -24,21 +25,30 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
     ).withAutoOffsetReset(AutoOffsetReset.Earliest)
       .withBootstrapServers("localhost:9092")
       .withGroupId(consumerName)
-      .withCloseTimeout(1.minute)
 
   override def source(
     partitions: Set[Int],
     partitionCount: Int
   ): fs2.Stream[IO, ProcessingRecord[T]] = {
     val partitionsSortedSet = collection.immutable.SortedSet.from(partitions)
-    KafkaConsumer
-      .stream(consumerSettings)
+    val consumer =
+      KafkaConsumer
+        .stream(consumerSettings)
+
+    consumer
       .evalTap(_.assign(topic, NonEmptySet.fromSetUnsafe(partitionsSortedSet)))
       .partitionedRecords
       .parJoinUnbounded
       .map { cr =>
         val meta = KafkaRecordMeta(cr.record.partition, cr.offset)
         record.ProcessingRecord(cr.record.value, Some(meta))
+      }
+      .evalTap { r =>
+        if (shutdownWhen(r.value)) {
+          consumer.evalTap(_.stopConsuming).compile.drain
+        } else {
+          IO.unit
+        }
       }
   }
 }

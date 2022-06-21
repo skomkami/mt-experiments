@@ -5,7 +5,9 @@ case class Config(dbConfig: DbConfig,
                   flowsConfig: FlowsConfig,
                   enabledPipelines: Option[String])
 
-case class FlowsConfig(parallelism: Int, partitionsCount: Int) {
+case class FlowsConfig(parallelism: Int,
+                       partitionsCount: Int,
+                       stopAtId: Option[Int]) {
   def isValid: Boolean =
     parallelism <= partitionsCount && partitionsCount % parallelism == 0
 

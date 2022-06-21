@@ -8,6 +8,7 @@ import pl.edu.agh.akka.pipeline.{
   Output,
   StatelessPipe
 }
+import performancetest.STOP_AT_ID
 import pl.edu.agh.common.{CarsPrices, FakeCantor}
 import pl.edu.agh.model.EquipEnum
 import pl.edu.agh.model.ItemEnum
@@ -50,7 +51,7 @@ case class OrdersProcessor()(implicit as: ActorSystem)
 
   override def input: Input[PlainOrder] = {
     implicit val decoder: JsonDeserializable[PlainOrder] = PlainOrder
-    KafkaInput[PlainOrder]("akka_orders", name)
+    KafkaInput[PlainOrder]("akka_orders", name, _.id == STOP_AT_ID)
   }
 
   override def output: Output[ProcessedOrder] = {
