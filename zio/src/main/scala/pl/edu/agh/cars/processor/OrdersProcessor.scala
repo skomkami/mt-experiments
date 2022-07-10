@@ -48,7 +48,7 @@ case class OrdersProcessor() extends StatelessPipe[PlainOrder, ProcessedOrder] {
 
   override def input: Input[PlainOrder] = {
     implicit val decoder: JsonDeserializable[PlainOrder] = PlainOrder
-    KafkaInput[PlainOrder]("zio_orders", name, r => r.id == STOP_AT_ID)
+    KafkaInput[PlainOrder]("zio_orders", name, r => r.id >= STOP_AT_ID - 12)
   }
 
   override def output: Output[ProcessedOrder] = {

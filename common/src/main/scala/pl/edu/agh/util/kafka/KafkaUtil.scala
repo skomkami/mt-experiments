@@ -33,9 +33,10 @@ object KafkaUtil {
         .get(1, TimeUnit.SECONDS)
       offsetAndMeta.offset() - 1
     }.fold(fa = msg => {
-      scribe.warn(msg)
-      None
-    }, fb = Option.apply)
+        scribe.warn(msg)
+        None
+      }, fb = Option.apply)
+      .filter(_ >= 0)
   }
 
   def createTopics(topics: List[NewTopic]): Unit = {

@@ -4,7 +4,8 @@ import akka.Done
 import akka.actor.ActorSystem
 import pl.edu.agh.config.FlowsConfig
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 case class Pipeline(private[pipeline] val pipes: List[Pipe[_, _]],
                     config: FlowsConfig)(implicit val as: ActorSystem) {
@@ -19,7 +20,13 @@ case class Pipeline(private[pipeline] val pipes: List[Pipe[_, _]],
           .map(_.run(config))
       )
       .map(_ => Done.done())
-    f.onComplete(_ => as.terminate())
+    f.onComplete { _ =>
+      println("terminating")
+
+      Await.result(as.terminate(), 200.millis)
+      println(s"End: ${System.currentTimeMillis()} ms")
+      System.exit(0)
+    }
     f
   }
 }

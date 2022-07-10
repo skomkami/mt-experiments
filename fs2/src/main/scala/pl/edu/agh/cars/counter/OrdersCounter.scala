@@ -23,13 +23,16 @@ case class OrdersCounter()
     KafkaInput[OrdersBatch](
       "fs2_orders_batch",
       name,
-      r => r.orders.last.id == STOP_AT_ID - BATCH_ERROR
+      r => r.orders.exists(_.id >= STOP_AT_ID - 8 * BATCH_ERROR - 12)
     )
   }
 
   override def output: KafkaOutput[Counter] = {
     implicit val encoder: JsonSerializable[Counter] = Counter
-    KafkaOutput[Counter]("fs2_orders_counter")
+    KafkaOutput[Counter](
+      "fs2_orders_counter",
+      r => r.ordersNo >= 16000
+    )
   }
 
   override def onEvent(oldState: Counter, event: OrdersBatch): Counter =

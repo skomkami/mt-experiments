@@ -14,6 +14,7 @@ case class OrdersCounter()
       implicitly[DerivedDecoder[Counter]],
       Counter
     ) {
+
   override def name: String = "zio-orders-counter"
 
   override def input: KafkaInput[OrdersBatch] = {
@@ -21,7 +22,7 @@ case class OrdersCounter()
     KafkaInput[OrdersBatch](
       "zio_order_batch",
       name,
-      r => r.orders.last.id == STOP_AT_ID - BATCH_ERROR
+      r => r.orders.exists(_.id >= STOP_AT_ID - BATCH_ERROR - 12)
     )
   }
 

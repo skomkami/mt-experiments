@@ -16,6 +16,7 @@ import pl.edu.agh.model.{JsonDeserializable, OrdersBatch}
 
 case class OrderBatchesPersistencePipe(dbConfig: DbConfig)
     extends StatelessPipe[OrdersBatch, OrdersBatch] {
+
   override def name: String = "fs2-orders-batches-persistence"
 
   override def onEvent(event: OrdersBatch): OrdersBatch = {
@@ -34,6 +35,7 @@ case class OrderBatchesPersistencePipe(dbConfig: DbConfig)
   override def output: Output[OrdersBatch] =
     PostgresOutput[OrdersBatch](
       dbConfig,
-      new OrdersStore[IO](_) with EntityStore[IO, OrdersBatch] {}
+      new OrdersStore[IO](_) with EntityStore[IO, OrdersBatch] {},
+      r => r.orders.exists(_.id >= STOP_AT_ID - BATCH_ERROR - 12)
     )
 }

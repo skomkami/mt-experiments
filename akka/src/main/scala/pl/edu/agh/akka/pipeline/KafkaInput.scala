@@ -13,8 +13,8 @@ import pl.edu.agh.AkkaConsumerExample.system
 import pl.edu.agh.model.JsonDeserializable
 import record.ProcessingRecord
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.{Duration, DurationInt}
 
 case class KafkaInput[T: DerivedDecoder](
   topic: String,
@@ -39,6 +39,7 @@ case class KafkaInput[T: DerivedDecoder](
                       partitionCount: Int): Source[ProcessingRecord[T], _] = {
     val tps = partitions.map(p => new TopicPartition(topic, p))
     implicit val mat = Materializer(actorSystem)
+    implicit val ec = mat.executionContext
     val (control, source) = Consumer
       .committableSource(consumerSettings, Subscriptions.assignment(tps))
       .preMaterialize()
@@ -49,7 +50,12 @@ case class KafkaInput[T: DerivedDecoder](
       }
       .wireTap { r =>
         if (shutdownWhen(r.value)) {
-          Await.result(control.shutdown(), Duration.Inf)
+          println("stopping input")
+          Await.result(
+            control.drainAndShutdown(Future(println("stopped"))),
+            200.millis
+          )
+          throw new Exception("stoppe")
         }
       }
   }

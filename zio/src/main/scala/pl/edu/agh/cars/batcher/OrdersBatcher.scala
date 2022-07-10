@@ -23,7 +23,7 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
     KafkaInput[ProcessedOrder](
       "zio_processed_orders",
       name,
-      r => r.id == STOP_AT_ID
+      r => r.id >= STOP_AT_ID - 12
     )
   }
 

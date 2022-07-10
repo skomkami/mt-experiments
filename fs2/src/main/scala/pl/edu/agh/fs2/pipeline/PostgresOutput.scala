@@ -8,7 +8,9 @@ import pl.edu.agh.config.DbConfig
 import record.ProcessingRecord
 
 case class PostgresOutput[T](config: DbConfig,
-                             mkStore: Transactor[IO] => EntityStore[IO, T])
+                             mkStore: Transactor[IO] => EntityStore[IO, T],
+                             override val shutdownWhen: T => Boolean = (_: T) =>
+                               false)
     extends OutputWithOffsetCommit[T] {
 
   private lazy val transactor: Aux[IO, Unit] = Transactor.fromDriverManager[IO](

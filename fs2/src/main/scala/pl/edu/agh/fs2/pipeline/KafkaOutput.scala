@@ -7,9 +7,11 @@ import record.ProcessingRecord
 
 import java.util.UUID
 
-case class KafkaOutput[T: DerivedAsObjectEncoder](topic: String)(
-  implicit encoder: JsonSerializable[T]
-) extends OutputWithOffsetCommit[T] {
+case class KafkaOutput[T: DerivedAsObjectEncoder](
+  topic: String,
+  override val shutdownWhen: T => Boolean = (_: T) => false
+)(implicit encoder: JsonSerializable[T])
+    extends OutputWithOffsetCommit[T] {
 
   val messageSerializer = Serializer.lift[IO, T] { msg =>
     IO.pure(encoder.toJson(msg).getBytes("UTF-8"))

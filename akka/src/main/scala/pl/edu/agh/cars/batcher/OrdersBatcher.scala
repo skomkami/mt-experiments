@@ -14,6 +14,7 @@ import pl.edu.agh.model.ProcessedOrder
 import record.ProcessingRecord
 
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 
 case class OrdersBatcher()(implicit as: ActorSystem)
     extends Pipe[ProcessedOrder, OrdersBatch] {
@@ -24,7 +25,7 @@ case class OrdersBatcher()(implicit as: ActorSystem)
     KafkaInput[ProcessedOrder](
       "akka_processed_orders",
       name,
-      r => r.id == STOP_AT_ID
+      r => r.id >= STOP_AT_ID - 12
     )
   }
 
@@ -48,6 +49,7 @@ case class OrdersBatcher()(implicit as: ActorSystem)
               r => (r.value.totalUSD * precision).toLong,
               _.map(OrdersBatch.empty.add)
             ) { case (batch, single) => single.map(batch.value.add) }
+            .throttle(1, 50.milliseconds)
             .runWith(output.sink)
       }
       .run()

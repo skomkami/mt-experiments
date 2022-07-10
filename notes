@@ -12,3 +12,9 @@ docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --crea
 
 docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --list
 docker exec -it kafka /bin/kafka-consumer-groups --bootstrap-server localhost:9092 --describe --all-groups
+
+docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --delete --topic akka_processed_orders
+docker exec -it kafka /bin/kafka-consumer-groups --bootstrap-server localhost:9092 --group zio-orders-counter --topic zio_order_batch --reset-offsets --to-earliest --execute
+docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --create --topic akka_processed_orders --replication-factor 1 --partitions 1
+docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --delete --topic fs2_orders_batch
+docker exec -it kafka /bin/kafka-consumer-groups --bootstrap-server localhost:9092 --group akka-orders-processor --topic akka_processed_orders --reset-offsets --to-earliest --execute

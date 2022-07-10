@@ -45,7 +45,11 @@ case class KafkaInput[T: DerivedDecoder](
       }
       .evalTap { r =>
         if (shutdownWhen(r.value)) {
-          consumer.evalTap(_.stopConsuming).compile.drain
+          println(s"End: ${System.currentTimeMillis()} ms")
+          consumer
+            .evalTap(c => c.stopConsuming >> c.terminate)
+            .compile
+            .drain
         } else {
           IO.unit
         }

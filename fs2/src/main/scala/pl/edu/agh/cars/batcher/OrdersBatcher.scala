@@ -2,7 +2,7 @@ package pl.edu.agh.cars.batcher
 
 import cats.effect.IO
 import fs2.Stream
-import performancetest.STOP_AT_ID
+import performancetest.{BATCH_ERROR, STOP_AT_ID}
 import pl.edu.agh.config.FlowsConfig
 import pl.edu.agh.fs2.pipeline.{Input, KafkaInput, KafkaOutput, Output, Pipe}
 import pl.edu.agh.model.{
@@ -19,16 +19,15 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
 
   override def input: Input[ProcessedOrder] = {
     implicit val decoder: JsonDeserializable[ProcessedOrder] = ProcessedOrder
-    KafkaInput[ProcessedOrder](
-      "fs2_processed_orders",
-      name,
-      r => r.id == STOP_AT_ID
-    )
+    KafkaInput[ProcessedOrder]("fs2_processed_orders", name)
   }
 
   override def output: Output[OrdersBatch] = {
     implicit val decoder: JsonSerializable[OrdersBatch] = OrdersBatch
-    KafkaOutput[OrdersBatch]("fs2_orders_batch")
+    KafkaOutput[OrdersBatch](
+      "fs2_orders_batch",
+      r => r.orders.exists(_.id >= STOP_AT_ID - BATCH_ERROR - 12)
+    )
   }
 
   override def run(flowsConfig: FlowsConfig): IO[_] = {

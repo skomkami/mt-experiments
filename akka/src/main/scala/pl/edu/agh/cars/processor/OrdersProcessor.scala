@@ -51,7 +51,7 @@ case class OrdersProcessor()(implicit as: ActorSystem)
 
   override def input: Input[PlainOrder] = {
     implicit val decoder: JsonDeserializable[PlainOrder] = PlainOrder
-    KafkaInput[PlainOrder]("akka_orders", name, _.id == STOP_AT_ID)
+    KafkaInput[PlainOrder]("akka_orders", name, _.id >= STOP_AT_ID - 12)
   }
 
   override def output: Output[ProcessedOrder] = {

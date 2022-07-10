@@ -28,7 +28,7 @@ case class OrderBatchesPersistencePipe()
     KafkaInput[OrdersBatch](
       "zio_order_batch",
       name,
-      r => r.orders.last.id == STOP_AT_ID - BATCH_ERROR
+      r => r.orders.exists(_.id >= STOP_AT_ID - 12)
     )
   }
 

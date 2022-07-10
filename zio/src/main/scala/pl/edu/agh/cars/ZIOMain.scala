@@ -17,7 +17,10 @@ object ZIOMain extends App {
       config <- ZIO.fromFunctionM[Configuration, Throwable, Config](_.get.load)
       _ <- currentTime(TimeUnit.MILLISECONDS)
         .tap(ms => ZIO.effect(println(s"start at $ms ms")))
-      pipeline = new OrdersPipeline(config.inputFilePath)
+      pipeline = new OrdersPipeline(
+        config.inputFilePath,
+        config.enabledPipelines
+      )
       pipeline <- pipeline.run.provide(config.flowsConfig).onExit { _ =>
         currentTime(TimeUnit.MILLISECONDS)
           .tap(ms => ZIO.effectTotal(println(s"end at $ms ms")))

@@ -65,24 +65,26 @@ abstract class StatefulPipe[In, S] extends Pipe[In, S] {
     implicit val ec: ExecutionContext = mat.executionContext
     val partitionAssignment = flowsConfig.partitionAssignment
     Source(partitionAssignment)
-      .flatMapMerge(
-        flowsConfig.parallelism, {
-          case (_, partitions) =>
-            Source(partitions)
-              .mapAsync(1)(p => restore(p).map(restored => p -> restored))
-              .map {
-                case (p, Some(restored)) =>
-                  input
-                    .source(Set(p), flowsConfig.partitionsCount)
-                    .scan(ProcessingRecord.partitioned(restored, p))(onRecord)
-                case (p, None) =>
-                  input
-                    .source(Set(p), flowsConfig.partitionsCount)
-                    .seedScan(_.map(onInit))(onRecord)
-              }
-              .mapAsync(1)(_.runWith(output.sink)) //TODO do sprawdzenia czy dalej działa
-        }
-      )
+      .mapAsyncUnordered(flowsConfig.parallelism) {
+        case (_, partitions) =>
+          Source(partitions)
+            .mapAsync(1)(p => restore(p).map(restored => p -> restored))
+            .wireTap { x =>
+              println(x)
+            }
+            .map {
+              case (p, Some(restored)) =>
+                input
+                  .source(Set(p), flowsConfig.partitionsCount)
+                  .scan(ProcessingRecord.partitioned(restored, p))(onRecord)
+              case (p, None) =>
+                input
+                  .source(Set(p), flowsConfig.partitionsCount)
+                  .seedScan(_.map(onInit))(onRecord)
+            }
+            .flatMapMerge(1, identity)
+            .runWith(output.sink)
+      }
       .run()
   }
 }

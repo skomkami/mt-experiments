@@ -13,13 +13,19 @@ object FS2Main extends IOApp {
       .flatTap(
         _ =>
           Clock[IO].realTime
-            .map(time => IO.blocking(println(s"Start: ${time.toMillis} ms")))
+            .map { time =>
+              println(s"Start: ${time.toMillis} ms")
+              IO(println(s"Start: ${time.toMillis} ms"))
+          }
       )
       .flatMap(_.run)
       .flatTap(
         _ =>
           Clock[IO].realTime
-            .map(time => IO.blocking(println(s"End: ${time.toMillis} ms")))
+            .map { time =>
+              println(s"End: ${time.toMillis} ms")
+              IO(println(s"End: ${time.toMillis} ms"))
+          }
       )
       .as(ExitCode.Success)
   }

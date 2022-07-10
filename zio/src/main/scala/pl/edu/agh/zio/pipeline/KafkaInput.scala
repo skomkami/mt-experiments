@@ -3,17 +3,11 @@ package pl.edu.agh.zio.pipeline
 import io.circe.generic.decoding.DerivedDecoder
 import pl.edu.agh.model.JsonDeserializable
 import record.ProcessingRecord
-import zio.{Chunk, ZIO, ZLayer}
-import zio.kafka.consumer.{
-  Consumer,
-  ConsumerSettings,
-  OffsetBatch,
-  Subscription
-}
+import zio.kafka.consumer.Consumer.AutoOffsetStrategy
+import zio.kafka.consumer.{Consumer, ConsumerSettings, Subscription}
 import zio.kafka.serde.{Deserializer, Serde}
 import zio.stream.ZStream
-
-import scala.util.Success
+import zio.{ZIO, ZLayer}
 
 case class KafkaInput[T: DerivedDecoder](
   topic: String,
@@ -25,6 +19,9 @@ case class KafkaInput[T: DerivedDecoder](
   val consumerSettings: ConsumerSettings =
     ConsumerSettings(List("localhost:9092"))
       .withGroupId(consumerName)
+      .withOffsetRetrieval(
+        Consumer.OffsetRetrieval.Auto(AutoOffsetStrategy.Earliest)
+      )
 
   val managedConsumer = Consumer.make(consumerSettings)
 
@@ -47,14 +44,19 @@ case class KafkaInput[T: DerivedDecoder](
     Consumer
       .subscribeAnd(Subscription.manual(tps: _*))
       .partitionedStream(Serde.string, messageSerde)
-      .flatMapPar(partitions.size)(_._2)
+      .flatMapPar(partitions.size) {
+        case (_, s) => s
+      }
       .map { record =>
         val meta = KafkaRecordMeta(record.partition, record.offset)
         ProcessingRecord(record.value, Some(meta))
       }
       .tap { r =>
         if (shutdownWhen(r.value)) {
-          ZIO.accessM.apply(_.get.stopConsumption)
+          println("koniec")
+          ZIO
+            .accessM[Consumer]
+            .apply(_.get[Consumer.Service].stopConsumption)
         } else { ZIO.unit }
       }
   }

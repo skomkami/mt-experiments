@@ -11,6 +11,7 @@ object AkkaMain {
 
   def main(args: Array[String]): Unit = {
     val config = ConfigSource.default.loadOrThrow[Config]
+    println(s"Start: ${System.currentTimeMillis()} ms")
     new OrdersPipeline(config).run
     ()
   }

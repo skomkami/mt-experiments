@@ -23,7 +23,7 @@ case class OrderBatchesPersistencePipe(dbConfig: DbConfig)(
     KafkaInput[OrdersBatch](
       "akka_order_batches",
       name,
-      r => r.orders.last.id == STOP_AT_ID - BATCH_ERROR
+      r => r.orders.exists(_.id >= STOP_AT_ID - 12)
     )
   }
 
