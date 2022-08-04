@@ -12,9 +12,11 @@ case class OrdersCounter()(implicit as: ActorSystem)
       Counter,
       as
     ) {
+  override def name: String = "akka-orders-counter"
+
   override def input: KafkaInput[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch]("akka_order_batches", "akka-orders-counter")
+    KafkaInput[OrdersBatch]("akka_order_batches", name)
   }
 
   override def output: KafkaOutput[Counter] = {

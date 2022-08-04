@@ -10,16 +10,15 @@ import pl.edu.agh.model.{JsonDeserializable, OrdersBatch}
 case class OrderBatchesPersistencePipe(dbConfig: DbConfig)(
   implicit as: ActorSystem
 ) extends StatelessPipe[OrdersBatch, OrdersBatch] {
+  override def name: String = "akka-order-batches-persistence-pipe"
+
   override def onEvent(event: OrdersBatch): OrdersBatch = {
     event
   }
 
   override def input: Input[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch](
-      "akka_order_batches",
-      "akka-order-batches-persistence-pipe"
-    )
+    KafkaInput[OrdersBatch]("akka_order_batches", name)
   }
 
   override def output: Output[OrdersBatch] =

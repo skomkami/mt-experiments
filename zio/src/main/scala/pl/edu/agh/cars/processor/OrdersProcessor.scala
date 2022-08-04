@@ -15,6 +15,8 @@ import pl.edu.agh.zio.pipeline.Output
 import pl.edu.agh.zio.pipeline.StatelessPipe
 
 case class OrdersProcessor() extends StatelessPipe[PlainOrder, ProcessedOrder] {
+  override def name: String = "zio-orders-processor"
+
   override def onEvent(plainOrder: PlainOrder): ProcessedOrder = {
     val itemTypes: List[ItemEnum] = ItemEnum.CarBase :: plainOrder.equipment
       .map {
@@ -44,7 +46,7 @@ case class OrdersProcessor() extends StatelessPipe[PlainOrder, ProcessedOrder] {
 
   override def input: Input[PlainOrder] = {
     implicit val decoder: JsonDeserializable[PlainOrder] = PlainOrder
-    KafkaInput[PlainOrder]("zio_orders", "orders-processor")
+    KafkaInput[PlainOrder]("zio_orders", name)
   }
 
   override def output: Output[ProcessedOrder] = {

@@ -7,6 +7,8 @@ import pl.edu.agh.parser.CsvOrdersParser
 
 case class OrdersLoader(filename: String)(implicit as: ActorSystem)
     extends StatelessPipe[String, PlainOrder] {
+  override def name: String = "akka-orders-loader"
+
   override def input: Input[String] = FileInput(filename)
 
   override def output: Output[PlainOrder] = {

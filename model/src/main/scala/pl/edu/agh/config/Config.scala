@@ -2,7 +2,8 @@ package pl.edu.agh.config
 
 case class Config(dbConfig: DbConfig,
                   inputFilePath: String,
-                  flowsConfig: FlowsConfig)
+                  flowsConfig: FlowsConfig,
+                  enabledPipelines: Option[String])
 
 case class FlowsConfig(parallelism: Int, partitionsCount: Int) {
   def isValid: Boolean =
