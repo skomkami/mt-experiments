@@ -15,16 +15,15 @@ import zio.interop.catz.implicits.rts
 
 case class OrderBatchesPersistencePipe()
     extends StatelessPipe[OrdersBatch, OrdersBatch] {
+  override def name: String = "zio-order-batches-persistence-pipe"
+
   override def onEvent(event: OrdersBatch): OrdersBatch = {
     event
   }
 
   override def input: Input[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch](
-      "zio_order_batch",
-      "zio-order-batches-persistence-pipe"
-    )
+    KafkaInput[OrdersBatch]("zio_order_batch", name)
   }
 
   override def output: Output[OrdersBatch] =

@@ -19,6 +19,8 @@ import pl.edu.agh.model.ProcessedOrder
 
 case class OrdersProcessor()(implicit as: ActorSystem)
     extends StatelessPipe[PlainOrder, ProcessedOrder] {
+  override def name: String = "akka-orders-processor"
+
   override def onEvent(plainOrder: PlainOrder): ProcessedOrder = {
     val itemTypes: List[ItemEnum] = ItemEnum.CarBase :: plainOrder.equipment
       .map {
@@ -48,7 +50,7 @@ case class OrdersProcessor()(implicit as: ActorSystem)
 
   override def input: Input[PlainOrder] = {
     implicit val decoder: JsonDeserializable[PlainOrder] = PlainOrder
-    KafkaInput[PlainOrder]("akka_orders", "orders-processor")
+    KafkaInput[PlainOrder]("akka_orders", name)
   }
 
   override def output: Output[ProcessedOrder] = {

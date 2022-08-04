@@ -14,6 +14,7 @@ import pl.edu.agh.model.{JsonDeserializable, OrdersBatch}
 
 case class OrderBatchesPersistencePipe(dbConfig: DbConfig)
     extends StatelessPipe[OrdersBatch, OrdersBatch] {
+  override def name: String = "fs2-orders-batches-persistence"
 
   override def onEvent(event: OrdersBatch): OrdersBatch = {
     event
@@ -21,10 +22,7 @@ case class OrderBatchesPersistencePipe(dbConfig: DbConfig)
 
   override def input: Input[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch](
-      "fs2_orders_batch",
-      "fs2-order-batches-persistence-pipe"
-    )
+    KafkaInput[OrdersBatch]("fs2_orders_batch", name)
   }
 
   override def output: Output[OrdersBatch] =

@@ -12,7 +12,10 @@ object ZIOMain extends App {
 
     val run = for {
       config <- ZIO.fromFunctionM[Configuration, Throwable, Config](_.get.load)
-      pipeline = new OrdersPipeline(config.inputFilePath)
+      pipeline = new OrdersPipeline(
+        config.inputFilePath,
+        config.enabledPipelines
+      )
       pipeline <- pipeline.run.provide(config.flowsConfig)
     } yield pipeline
 

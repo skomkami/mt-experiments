@@ -15,10 +15,11 @@ import zio.ZIO
 import zio.stream.{Sink, ZStream, ZTransducer}
 
 case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
+  override def name: String = "zio-orders-batcher"
 
   override def input: Input[ProcessedOrder] = {
     implicit val decoder: JsonDeserializable[ProcessedOrder] = ProcessedOrder
-    KafkaInput[ProcessedOrder]("zio_processed_orders", "zio-orders-batcher")
+    KafkaInput[ProcessedOrder]("zio_processed_orders", name)
   }
 
   override def output: Output[OrdersBatch] = {

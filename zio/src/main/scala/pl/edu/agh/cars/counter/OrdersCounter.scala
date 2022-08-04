@@ -12,9 +12,11 @@ case class OrdersCounter()
       implicitly[DerivedDecoder[Counter]],
       Counter
     ) {
+  override def name: String = "zio-orders-counter"
+
   override def input: KafkaInput[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch]("zio_order_batch", "orders-counter")
+    KafkaInput[OrdersBatch]("zio_order_batch", name)
   }
 
   override def output: KafkaOutput[Counter] = {

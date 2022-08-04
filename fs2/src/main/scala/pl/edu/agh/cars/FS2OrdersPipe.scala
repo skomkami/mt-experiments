@@ -16,6 +16,8 @@ class FS2OrdersPipe(config: Config)
         OrdersBatcher(),
         OrderBatchesPersistencePipe(config.dbConfig),
         OrdersCounter()
+      ).filter(
+        f => config.enabledPipelines.forall(_.split(",").contains(f.name))
       ),
       flowsConfig = config.flowsConfig
     )

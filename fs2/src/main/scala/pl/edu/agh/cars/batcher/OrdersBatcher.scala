@@ -14,10 +14,11 @@ import pl.edu.agh.fs2.pipeline.utils.GroupUntil.GroupUntilOps
 import record.ProcessingRecord
 
 case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
+  override def name: String = "fs2-orders-batcher"
 
   override def input: Input[ProcessedOrder] = {
     implicit val decoder: JsonDeserializable[ProcessedOrder] = ProcessedOrder
-    KafkaInput[ProcessedOrder]("fs2_processed_orders", "fs2-orders-batcher")
+    KafkaInput[ProcessedOrder]("fs2_processed_orders", name)
   }
 
   override def output: Output[OrdersBatch] = {

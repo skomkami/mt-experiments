@@ -16,10 +16,11 @@ import scala.concurrent.Future
 
 case class OrdersBatcher()(implicit as: ActorSystem)
     extends Pipe[ProcessedOrder, OrdersBatch] {
+  override def name: String = "akka-orders-batcher"
 
   override def input: Input[ProcessedOrder] = {
     implicit val decoder: JsonDeserializable[ProcessedOrder] = ProcessedOrder
-    KafkaInput[ProcessedOrder]("akka_processed_orders", "akka-orders-batcher")
+    KafkaInput[ProcessedOrder]("akka_processed_orders", name)
   }
 
   override def output: Output[OrdersBatch] = {
