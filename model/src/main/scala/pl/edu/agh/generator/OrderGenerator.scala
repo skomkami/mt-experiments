@@ -31,4 +31,6 @@ object OrderGenerator {
       equipment = equipment
     )
   }
+
+  def init: Unit = OrderGenerator.randomOrder(-1)
 }
