@@ -12,3 +12,5 @@ docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --crea
 
 docker exec -it kafka /bin/kafka-topics --bootstrap-server localhost:9092 --list
 docker exec -it kafka /bin/kafka-consumer-groups --bootstrap-server localhost:9092 --describe --all-groups
+
+docker exec -it postgres psql -U postgres mt_experiments
