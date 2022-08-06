@@ -20,11 +20,7 @@ case class OrderBatchesPersistencePipe(dbConfig: DbConfig)(
 
   override def input: Input[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch](
-      "akka_order_batches",
-      name,
-      r => r.orders.exists(_.id >= STOP_AT_ID - 12)
-    )
+    FileJsonInput[OrdersBatch]("akka_order_batches")
   }
 
   override def output: Output[OrdersBatch] =

@@ -1,15 +1,13 @@
 package pl.edu.agh.cars.processor
 
 import akka.actor.ActorSystem
-import pl.edu.agh.akka.pipeline.{
-  Input,
-  KafkaInput,
-  KafkaOutput,
-  Output,
-  StatelessPipe
-}
-import performancetest.STOP_AT_ID
-import pl.edu.agh.common.{CarsPrices, FakeCantor}
+import pl.edu.agh.akka.pipeline.FileJsonInput
+import pl.edu.agh.akka.pipeline.FileJsonOutput
+import pl.edu.agh.akka.pipeline.Input
+import pl.edu.agh.akka.pipeline.Output
+import pl.edu.agh.akka.pipeline.StatelessPipe
+import pl.edu.agh.common.CarsPrices
+import pl.edu.agh.common.FakeCantor
 import pl.edu.agh.model.EquipEnum
 import pl.edu.agh.model.ItemEnum
 import pl.edu.agh.model.JsonCodec
@@ -51,11 +49,11 @@ case class OrdersProcessor()(implicit as: ActorSystem)
 
   override def input: Input[PlainOrder] = {
     implicit val decoder: JsonDeserializable[PlainOrder] = PlainOrder
-    KafkaInput[PlainOrder]("akka_orders", name, _.id >= STOP_AT_ID - 12)
+    FileJsonInput[PlainOrder]("akka_orders")
   }
 
   override def output: Output[ProcessedOrder] = {
     implicit val encoder: JsonCodec[ProcessedOrder] = ProcessedOrder
-    KafkaOutput[ProcessedOrder]("akka_processed_orders")
+    FileJsonOutput[ProcessedOrder]("akka_processed_orders")
   }
 }

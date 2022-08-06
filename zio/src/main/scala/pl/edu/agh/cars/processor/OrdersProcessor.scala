@@ -1,7 +1,7 @@
 package pl.edu.agh.cars.processor
 
-import performancetest.STOP_AT_ID
-import pl.edu.agh.common.{CarsPrices, FakeCantor}
+import pl.edu.agh.common.CarsPrices
+import pl.edu.agh.common.FakeCantor
 import pl.edu.agh.model.EquipEnum
 import pl.edu.agh.model.ItemEnum
 import pl.edu.agh.model.JsonCodec
@@ -9,9 +9,9 @@ import pl.edu.agh.model.JsonDeserializable
 import pl.edu.agh.model.OrderItem
 import pl.edu.agh.model.PlainOrder
 import pl.edu.agh.model.ProcessedOrder
+import pl.edu.agh.zio.pipeline.FileJsonInput
+import pl.edu.agh.zio.pipeline.FileJsonOutput
 import pl.edu.agh.zio.pipeline.Input
-import pl.edu.agh.zio.pipeline.KafkaInput
-import pl.edu.agh.zio.pipeline.KafkaOutput
 import pl.edu.agh.zio.pipeline.Output
 import pl.edu.agh.zio.pipeline.StatelessPipe
 
@@ -48,11 +48,11 @@ case class OrdersProcessor() extends StatelessPipe[PlainOrder, ProcessedOrder] {
 
   override def input: Input[PlainOrder] = {
     implicit val decoder: JsonDeserializable[PlainOrder] = PlainOrder
-    KafkaInput[PlainOrder]("zio_orders", name, r => r.id >= STOP_AT_ID - 12)
+    FileJsonInput[PlainOrder]("zio_orders")
   }
 
   override def output: Output[ProcessedOrder] = {
     implicit val encoder: JsonCodec[ProcessedOrder] = ProcessedOrder
-    KafkaOutput[ProcessedOrder]("zio_processed_orders")
+    FileJsonOutput[ProcessedOrder]("zio_processed_orders")
   }
 }

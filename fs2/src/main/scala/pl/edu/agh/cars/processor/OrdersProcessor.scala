@@ -4,8 +4,8 @@ import performancetest.STOP_AT_ID
 import pl.edu.agh.common.{CarsPrices, FakeCantor}
 import pl.edu.agh.fs2.pipeline.{
   Input,
-  KafkaInput,
-  KafkaOutput,
+  FileJsonInput,
+  FileJsonOutput,
   Output,
   StatelessPipe
 }
@@ -52,11 +52,11 @@ case class OrdersProcessor() extends StatelessPipe[PlainOrder, ProcessedOrder] {
 
   override def input: Input[PlainOrder] = {
     implicit val decoder: JsonDeserializable[PlainOrder] = PlainOrder
-    KafkaInput[PlainOrder]("fs2_orders", name)
+    FileJsonInput[PlainOrder]("fs2_orders")
   }
 
   override def output: Output[ProcessedOrder] = {
     implicit val encoder: JsonCodec[ProcessedOrder] = ProcessedOrder
-    KafkaOutput[ProcessedOrder]("fs2_processed_orders", r => r.id >= STOP_AT_ID - 12)
+    FileJsonOutput[ProcessedOrder]("fs2_processed_orders")
   }
 }

@@ -4,8 +4,11 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
-import performancetest.STOP_AT_ID
-import pl.edu.agh.akka.pipeline.{Input, KafkaInput, KafkaOutput, Output, Pipe}
+import pl.edu.agh.akka.pipeline.FileJsonInput
+import pl.edu.agh.akka.pipeline.FileJsonOutput
+import pl.edu.agh.akka.pipeline.Input
+import pl.edu.agh.akka.pipeline.Output
+import pl.edu.agh.akka.pipeline.Pipe
 import pl.edu.agh.config.FlowsConfig
 import pl.edu.agh.model.JsonDeserializable
 import pl.edu.agh.model.JsonSerializable
@@ -22,16 +25,12 @@ case class OrdersBatcher()(implicit as: ActorSystem)
 
   override def input: Input[ProcessedOrder] = {
     implicit val decoder: JsonDeserializable[ProcessedOrder] = ProcessedOrder
-    KafkaInput[ProcessedOrder](
-      "akka_processed_orders",
-      name,
-      r => r.id >= STOP_AT_ID - 12
-    )
+    FileJsonInput[ProcessedOrder]("akka_processed_orders")
   }
 
   override def output: Output[OrdersBatch] = {
     implicit val decoder: JsonSerializable[OrdersBatch] = OrdersBatch
-    KafkaOutput[OrdersBatch]("akka_order_batches")
+    FileJsonOutput[OrdersBatch]("akka_order_batches")
   }
   private val precision = 10
 

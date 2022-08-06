@@ -7,28 +7,22 @@ import pl.edu.agh.common.Counter
 import pl.edu.agh.model.JsonDeserializable
 import pl.edu.agh.model.JsonSerializable
 import pl.edu.agh.model.OrdersBatch
-import pl.edu.agh.zio.pipeline.{KafkaInput, KafkaOutput, KafkaStatefulPipe}
+import pl.edu.agh.zio.pipeline.{FileJsonInput, FileJsonOutput}
+import pl.edu.agh.zio.pipeline.StatefulPipe
+import zio.Task
 
-case class OrdersCounter()
-    extends KafkaStatefulPipe[OrdersBatch, Counter]()(
-      implicitly[DerivedDecoder[Counter]],
-      Counter
-    ) {
+case class OrdersCounter() extends StatefulPipe[OrdersBatch, Counter] {
 
   override def name: String = "zio-orders-counter"
 
-  override def input: KafkaInput[OrdersBatch] = {
+  override def input: FileJsonInput[OrdersBatch] = {
     implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
-    KafkaInput[OrdersBatch](
-      "zio_order_batch",
-      name,
-      r => r.orders.exists(_.id >= STOP_AT_ID - BATCH_ERROR - 12)
-    )
+    FileJsonInput[OrdersBatch]("zio_order_batch")
   }
 
-  override def output: KafkaOutput[Counter] = {
+  override def output: FileJsonOutput[Counter] = {
     implicit val encoder: JsonSerializable[Counter] = Counter
-    KafkaOutput[Counter]("zio_orders_counter")
+    FileJsonOutput[Counter]("zio_orders_counter")
   }
 
   override def onEvent(oldState: Counter, event: OrdersBatch): Counter =
@@ -37,4 +31,7 @@ case class OrdersCounter()
   override def onInit(event: OrdersBatch): Counter = {
     Counter(event.ordersNumber, event.totalAmount)
   }
+
+  override def restore(partition: Int): Task[Option[Counter]] =
+    Task.succeed(None)
 }

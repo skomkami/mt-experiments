@@ -2,16 +2,17 @@ package pl.edu.agh.cars.batcher
 
 import cats.effect.IO
 import fs2.Stream
-import performancetest.{BATCH_ERROR, STOP_AT_ID}
 import pl.edu.agh.config.FlowsConfig
-import pl.edu.agh.fs2.pipeline.{Input, KafkaInput, KafkaOutput, Output, Pipe}
-import pl.edu.agh.model.{
-  JsonDeserializable,
-  JsonSerializable,
-  OrdersBatch,
-  ProcessedOrder
-}
 import pl.edu.agh.fs2.pipeline.utils.GroupUntil.GroupUntilOps
+import pl.edu.agh.fs2.pipeline.FileJsonInput
+import pl.edu.agh.fs2.pipeline.FileJsonOutput
+import pl.edu.agh.fs2.pipeline.Input
+import pl.edu.agh.fs2.pipeline.Output
+import pl.edu.agh.fs2.pipeline.Pipe
+import pl.edu.agh.model.JsonDeserializable
+import pl.edu.agh.model.JsonSerializable
+import pl.edu.agh.model.OrdersBatch
+import pl.edu.agh.model.ProcessedOrder
 import record.ProcessingRecord
 
 case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
@@ -19,15 +20,12 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
 
   override def input: Input[ProcessedOrder] = {
     implicit val decoder: JsonDeserializable[ProcessedOrder] = ProcessedOrder
-    KafkaInput[ProcessedOrder]("fs2_processed_orders", name)
+    FileJsonInput[ProcessedOrder]("fs2_processed_orders")
   }
 
   override def output: Output[OrdersBatch] = {
     implicit val decoder: JsonSerializable[OrdersBatch] = OrdersBatch
-    KafkaOutput[OrdersBatch](
-      "fs2_orders_batch",
-      r => r.orders.exists(_.id >= STOP_AT_ID - BATCH_ERROR - 12)
-    )
+    FileJsonOutput[OrdersBatch]("fs2_orders_batch")
   }
 
   override def run(flowsConfig: FlowsConfig): IO[_] = {

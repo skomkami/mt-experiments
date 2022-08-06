@@ -18,9 +18,9 @@ trait Output[T] {
 trait Pipe[In, Out] {
   def input: Input[In]
   def output: Output[Out]
-  def name: String
 
   def name: String
+
   def run(flowsConfig: FlowsConfig): IO[_]
 }
 
