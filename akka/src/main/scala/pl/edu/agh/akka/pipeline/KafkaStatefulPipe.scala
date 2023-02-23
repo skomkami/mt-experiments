@@ -11,7 +11,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.StringDeserializer
-import pl.edu.agh.AkkaConsumerExample.config
 import pl.edu.agh.model.JsonDeserializable
 import pl.edu.agh.util.kafka.KafkaUtil
 
@@ -25,6 +24,9 @@ abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
   override def input: KafkaInput[In]
 
   override def output: KafkaOutput[S]
+
+  private val config =
+    actorSystem.settings.config.getConfig("akka.kafka.consumer")
 
   private val messageDeserializer: Deserializer[S] =
     (_: String, data: Array[Byte]) => {
