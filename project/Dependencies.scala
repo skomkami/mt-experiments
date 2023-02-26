@@ -3,24 +3,24 @@ import sbt._
 object Dependencies {
 
   case object Versions {
-    val akkaCore = "2.6.18"
-    val akkaStreamKafka = "3.0.0"
+    val akkaCore = "2.8.0-M5"
+//    val akkaStreamKafka = "3.0.0"
     val circe = "0.15.0-M1"
-    val doobie = "1.0.0-M1"
-    val enumeration = "1.7.0"
-    val fs2 = "3.2.4"
-    val fs2Kafka = "3.0.0-M4"
+    val doobie = "1.0.0-RC2"
+    val enumeration = "1.7.2"
+    val fs2 = "3.6.1"
+    val fs2Kafka = "3.0.0-M9"
     val kafkaClients = "3.0.0"
-    val quicklens = "1.8.2"
-    val pureconfig = "0.14.0"
-    val scalaTest = "3.2.9"
-    val scribe = "3.6.10"
-    val scalacheckFaker = "7.0.0"
+    val quicklens = "1.9.0"
+    val pureconfig = "0.17.2"
+    val scalaTest = "3.3.0-SNAP3"
+    val scribe = "3.11.1"
+//    val scalacheckFaker = "7.0.0"
 //    val zio = "1.0.13"
-    val slf4j = "1.7.35"
-    val zioCats = "3.1.1.0"
-    val zioKafka = "0.15.0"
-    val zioJson = "0.1.5"
+    val slf4j = "2.0.6"
+    val zioCats = "23.0.0.2"
+    val zioKafka = "2.0.7"
+    val zioJson = "0.4.2"
   }
 
   case object co {
@@ -39,7 +39,7 @@ object Dependencies {
     case object github {
       case object pureconfig {
         val pureconfig =
-          "com.github.pureconfig" %% "pureconfig" % Versions.pureconfig
+          "com.github.pureconfig" %% "pureconfig-core" % Versions.pureconfig
       }
 
       case object fd4s {
@@ -63,7 +63,7 @@ object Dependencies {
           "com.typesafe.akka" %% "akka-actor-typed" % Versions.akkaCore
         val `akka-stream` =
           "com.typesafe.akka" %% "akka-stream" % Versions.akkaCore
-        val `akka-stream-kafka` = "com.typesafe.akka" %% "akka-stream-kafka" % Versions.akkaStreamKafka
+//        val `akka-stream-kafka` = "com.typesafe.akka" %% "akka-stream-kafka" % Versions.akkaStreamKafka
       }
     }
   }
@@ -93,11 +93,11 @@ object Dependencies {
       private def dependency(artifact: String): ModuleID =
         "io.circe" %% s"circe-$artifact" % Versions.circe
     }
-    case object github {
-      case object etspaceman {
-        val `scalacheck-faker` = "io.github.etspaceman" %% "scalacheck-faker" % Versions.scalacheckFaker
-      }
-    }
+//    case object github {
+//      case object etspaceman {
+//        val `scalacheck-faker` = "io.github.etspaceman" %% "scalacheck-faker" % Versions.scalacheckFaker
+//      }
+//    }
   }
 
   case object org {
@@ -118,10 +118,10 @@ object Dependencies {
       val `slf4j-simple` = "org.slf4j" % "slf4j-simple" % Versions.slf4j
     }
 
-    case object scalatest {
-      val scalatest =
-        "org.scalatest" %% "scalatest" % Versions.scalaTest
-    }
+//    case object scalatest {
+//      val scalatest =
+//        "org.scalatest" %% "scalatest" % Versions.scalaTest
+//    }
 
     case object tpolecat {
       val `doobie-core` = "org.tpolecat" %% "doobie-core" % Versions.doobie
