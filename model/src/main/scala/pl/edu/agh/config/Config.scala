@@ -2,6 +2,7 @@ package pl.edu.agh.config
 
 import pureconfig.*
 import pureconfig.generic.derivation.default.*
+
 case class Config(dbConfig: DbConfig,
                   inputFilePath: String,
                   flowsConfig: FlowsConfig,

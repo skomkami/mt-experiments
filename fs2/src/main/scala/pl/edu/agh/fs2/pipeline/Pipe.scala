@@ -12,7 +12,7 @@ trait Input[T] {
 }
 
 trait Output[T] {
-  def sink: FS2Pipe[IO, ProcessingRecord[T], _]
+  def sink: FS2Pipe[IO, ProcessingRecord[T], Any]
 }
 
 trait Pipe[In, Out] {

@@ -13,8 +13,8 @@ abstract class OutputWithOffsetCommit[T] extends Output[T] {
         krm.committableOffset
     }.through(commitBatchWithin[IO](10, 500.millis)) >> fs2.Stream.empty
 
-  final override def sink: fs2.Pipe[IO, ProcessingRecord[T], _] =
+  final override def sink: fs2.Pipe[IO, ProcessingRecord[T], Any] =
     _.broadcastThrough(commitOffsetsPipe, elementSink)
 
-  def elementSink: fs2.Pipe[IO, ProcessingRecord[T], _]
+  def elementSink: fs2.Pipe[IO, ProcessingRecord[T], Any]
 }

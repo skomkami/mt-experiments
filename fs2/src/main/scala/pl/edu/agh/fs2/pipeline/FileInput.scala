@@ -1,9 +1,7 @@
 package pl.edu.agh.fs2.pipeline
 import cats.effect.IO
-import fs2.io.file.Files
+import fs2.io.file.{Files, Flags, Path}
 import record.ProcessingRecord
-
-import java.nio.file.Paths
 
 case class FileInput(filename: String) extends Input[String] {
   override def source(
@@ -11,7 +9,7 @@ case class FileInput(filename: String) extends Input[String] {
     partitionCount: Int
   ): fs2.Stream[IO, ProcessingRecord[String]] =
     Files[IO]
-      .readAll(Paths.get(filename), 4096)
+      .readAll(Path(filename), 4096, Flags.Read)
       .through(_root_.fs2.text.utf8.decode)
       .through(_root_.fs2.text.lines)
       .filter(_.nonEmpty)

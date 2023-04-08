@@ -10,7 +10,7 @@ import pl.edu.agh.fs2.pipeline.{
   PostgresOutput,
   StatelessPipe
 }
-import pl.edu.agh.model.{JsonDeserializable, OrdersBatch}
+import pl.edu.agh.model.OrdersBatch
 
 case class OrderBatchesPersistencePipe(dbConfig: DbConfig)
     extends StatelessPipe[OrdersBatch, OrdersBatch] {
@@ -21,7 +21,6 @@ case class OrderBatchesPersistencePipe(dbConfig: DbConfig)
   }
 
   override def input: Input[OrdersBatch] = {
-    implicit val decoder: JsonDeserializable[OrdersBatch] = OrdersBatch
     KafkaInput[OrdersBatch]("fs2_orders_batch", name)
   }
 

@@ -7,7 +7,7 @@ import pl.edu.agh.fs2.pipeline.{
   Output,
   StatelessPipe
 }
-import pl.edu.agh.model.{JsonSerializable, PlainOrder}
+import pl.edu.agh.model.PlainOrder
 import pl.edu.agh.parser.CsvOrdersParser
 
 case class OrdersLoader(filename: String)
@@ -22,7 +22,6 @@ case class OrdersLoader(filename: String)
   override def input: Input[String] = FileInput(filename)
 
   override def output: Output[PlainOrder] = {
-    implicit val encoder: JsonSerializable[PlainOrder] = PlainOrder
     KafkaOutput[PlainOrder]("fs2_orders")
   }
 }

@@ -3,22 +3,20 @@ package pl.edu.agh.fs2.pipeline
 import cats.effect.IO
 import fs2.Stream
 import fs2.io.file.Files
-import io.circe.generic.encoding.DerivedAsObjectEncoder
-import pl.edu.agh.model.JsonSerializable
+import io.circe.Encoder
+import pl.edu.agh.model.JsonCodec
 import record.ProcessingRecord
+import fs2.io.file.Flags
+import fs2.io.file.Path
 
-import java.nio.file.Paths
+case class FileJsonOutput[T: Encoder](path: String) extends OutputWithOffsetCommit[T] {
 
-case class FileJsonOutput[T: DerivedAsObjectEncoder](path: String)(
-  implicit encoder: JsonSerializable[T]
-) extends OutputWithOffsetCommit[T] {
-
-  override def elementSink: fs2.Pipe[IO, ProcessingRecord[T], _] =
+  override def elementSink: fs2.Pipe[IO, ProcessingRecord[T], Nothing] =
     (s1: fs2.Stream[IO, ProcessingRecord[T]]) =>
       s1.map(_.value)
-        .map(encoder.toJson)
+        .map(JsonCodec.toJson(_))
         .map(_.appendedAll("\n"))
         .flatMap(str => Stream(str.getBytes("UTF-8"): _*))
-        .through(Files[IO].writeAll(Paths.get(path)))
+        .through(Files[IO].writeAll(Path(path), Flags.Append))
 
 }

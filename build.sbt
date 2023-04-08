@@ -51,17 +51,17 @@ lazy val zio =
       testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
     )
 
-//lazy val fs2 =
-//  project
-//    .in(file("fs2"))
-//    .dependsOn(model, common)
-//    .settings(commonSettings: _*)
-//    .settings(
-//      libraryDependencies ++= Seq(
-//        co.fs2.`fs2-core`,
-//        com.github.fd4s.`fs2-kafka`
-//      )
-//    )
+lazy val fs2 =
+  project
+    .in(file("fs2"))
+    .dependsOn(model, common)
+    .settings(commonSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq(
+        co.fs2.`fs2-core`,
+        com.github.fd4s.`fs2-kafka`
+      )
+    )
 
 lazy val baseLibraries = Seq(
   com.outr.scribe,

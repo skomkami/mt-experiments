@@ -2,8 +2,8 @@ package pl.edu.agh.cars
 
 import cats.effect.{ExitCode, IO, IOApp}
 import pl.edu.agh.config.Config
-import pureconfig.ConfigSource
-import pureconfig.generic.auto.*
+import pureconfig.*
+import pureconfig.generic.derivation.default.*
 
 object FS2Main extends IOApp {
 

@@ -1,23 +1,20 @@
 package pl.edu.agh.fs2.pipeline
 
+import io.circe.Decoder
+import pl.edu.agh.model.JsonCodec
 import cats.data.NonEmptySet
 import cats.effect.IO
 import fs2.kafka._
-import io.circe.generic.decoding.DerivedDecoder
-import pl.edu.agh.model.JsonDeserializable
 import record.ProcessingRecord
-
 import scala.concurrent.duration.*
 
-case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
-  implicit decoder: JsonDeserializable[T]
-) extends Input[T] {
+case class KafkaInput[T: Decoder](topic: String, consumerName: String) extends Input[T] {
 
-  val messageDeserializer = Deserializer.instance { (_, _, bytes) =>
-    val either = decoder.fromJson(new String(bytes))
+  private val messageDeserializer = Deserializer.instance { (_, _, bytes) =>
+    val either = JsonCodec.fromJsonSafe(new String(bytes))
     IO.fromEither(either)
   }
-  val consumerSettings =
+  private val consumerSettings =
     ConsumerSettings[IO, String, T](
       keyDeserializer = Deserializer[IO, String],
       valueDeserializer = messageDeserializer

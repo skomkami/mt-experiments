@@ -20,7 +20,7 @@ case class PostgresOutput[T](config: DbConfig,
 
   private lazy val store: EntityStore[IO, T] = mkStore(transactor)
 
-  override def elementSink: fs2.Pipe[IO, ProcessingRecord[T], _] =
+  override def elementSink: fs2.Pipe[IO, ProcessingRecord[T], Int] =
     _.mapAsync(1) { ent =>
       store.save(ent.value)
     }

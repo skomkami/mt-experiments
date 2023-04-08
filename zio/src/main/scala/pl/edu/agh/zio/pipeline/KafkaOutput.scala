@@ -13,7 +13,7 @@ import zio.stream.ZSink
 case class KafkaOutput[T: Encoder](topic: String) extends OutputWithOffsetCommit[T] {
   val producerSettings: ProducerSettings = ProducerSettings(
     List("localhost:9092")
-  ).withProperty("request.timeout.ms", "300000")
+  )
 
   val messageSerializer: Serializer[Any, T] = Serializer.string.contramapM {
     messageAsObj =>

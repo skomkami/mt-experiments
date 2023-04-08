@@ -2,14 +2,12 @@ package pl.edu.agh.fs2.pipeline
 
 import cats.effect.IO
 import cats.implicits.toTraverseOps
-import io.circe.generic.decoding.DerivedDecoder
+import io.circe.{Decoder, Encoder}
 import org.apache.kafka.common.TopicPartition
-import pl.edu.agh.model.JsonDeserializable
+import pl.edu.agh.model.JsonCodec
 import pl.edu.agh.util.kafka.KafkaUtil
 
-abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
-  implicit val decoder: JsonDeserializable[S]
-) extends StatefulPipe[In, S] {
+abstract class KafkaStatefulPipe[In, S: Decoder] extends StatefulPipe[In, S] {
   override def input: KafkaInput[In]
 
   override def output: KafkaOutput[S]
@@ -22,7 +20,7 @@ abstract class KafkaStatefulPipe[In, S: DerivedDecoder](
         case Right(value) => IO.pure(value)
         case Left(err)    => IO.raiseError(err)
       }
-      .flatMap(str => IO.fromEither(decoder.fromJson(str)))
+      .flatMap(str => IO.fromEither(JsonCodec.fromJsonSafe(str)))
   }
 
   override def restore(partition: Int): IO[Option[S]] = {

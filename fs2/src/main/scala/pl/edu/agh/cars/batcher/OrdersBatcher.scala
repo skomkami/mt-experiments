@@ -4,12 +4,7 @@ import cats.effect.IO
 import fs2.Stream
 import pl.edu.agh.config.FlowsConfig
 import pl.edu.agh.fs2.pipeline.{Input, KafkaInput, KafkaOutput, Output, Pipe}
-import pl.edu.agh.model.{
-  JsonDeserializable,
-  JsonSerializable,
-  OrdersBatch,
-  ProcessedOrder
-}
+import pl.edu.agh.model.{ OrdersBatch, ProcessedOrder }
 import pl.edu.agh.fs2.pipeline.utils.GroupUntil.GroupUntilOps
 import record.ProcessingRecord
 
@@ -17,12 +12,10 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
   override def name: String = "fs2-orders-batcher"
 
   override def input: Input[ProcessedOrder] = {
-    implicit val decoder: JsonDeserializable[ProcessedOrder] = ProcessedOrder
     KafkaInput[ProcessedOrder]("fs2_processed_orders", name)
   }
 
   override def output: Output[OrdersBatch] = {
-    implicit val decoder: JsonSerializable[OrdersBatch] = OrdersBatch
     KafkaOutput[OrdersBatch]("fs2_orders_batch")
   }
 
