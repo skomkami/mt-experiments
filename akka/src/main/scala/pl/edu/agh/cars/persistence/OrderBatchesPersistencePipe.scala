@@ -2,7 +2,7 @@ package pl.edu.agh.cars.persistence
 
 import akka.actor.ActorSystem
 import cats.effect.IO
-import pl.edu.agh.akka.pipeline._
+import pl.edu.agh.akka.pipeline.*
 import pl.edu.agh.common.{EntityStore, OrdersStore}
 import pl.edu.agh.config.DbConfig
 import pl.edu.agh.model.{JsonDeserializable, OrdersBatch}

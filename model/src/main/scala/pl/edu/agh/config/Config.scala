@@ -1,9 +1,11 @@
 package pl.edu.agh.config
 
+import pureconfig.*
+import pureconfig.generic.derivation.default.*
 case class Config(dbConfig: DbConfig,
                   inputFilePath: String,
                   flowsConfig: FlowsConfig,
-                  enabledPipelines: Option[String])
+                  enabledPipelines: Option[String]) derives ConfigReader
 
 case class FlowsConfig(parallelism: Int, partitionsCount: Int) {
   def isValid: Boolean =

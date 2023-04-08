@@ -1,24 +1,23 @@
 package pl.edu.agh.cars
 
 import pl.edu.agh.config.Config
-import pl.edu.agh.config.configuration.Configuration
-import zio._
-import zio.console.Console
+import pl.edu.agh.config.Configuration
+import zio.*
 
-object ZIOMain extends App {
-  def run(args: List[String]): URIO[Any with Console, ExitCode] = {
+object ZIOMain extends ZIOAppDefault {
+  def run = {
 
     val layer = Configuration.live
 
     val run = for {
-      config <- ZIO.fromFunctionM[Configuration, Throwable, Config](_.get.load)
+      config <- Configuration.load
       pipeline = new OrdersPipeline(
         config.inputFilePath,
         config.enabledPipelines
       )
-      pipeline <- pipeline.run.provide(config.flowsConfig)
+      pipeline <- pipeline.run.provideLayer(ZLayer.succeed(config.flowsConfig))
     } yield pipeline
 
-    run.provideLayer(layer).exitCode
+    run.provideLayer(layer)
   }
 }

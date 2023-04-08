@@ -7,7 +7,7 @@ import io.circe.generic.decoding.DerivedDecoder
 import pl.edu.agh.model.JsonDeserializable
 import record.ProcessingRecord
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
   implicit decoder: JsonDeserializable[T]

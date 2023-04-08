@@ -1,4 +1,5 @@
-import sbt._
+import sbt.*
+import sbt.librarymanagement.ModuleID
 
 object Dependencies {
 
@@ -13,10 +14,11 @@ object Dependencies {
     val kafkaClients = "3.0.0"
     val quicklens = "1.9.0"
     val pureconfig = "0.17.2"
-    val scalaTest = "3.3.0-SNAP3"
+    val scalaTest = "3.2.15"
     val scribe = "3.11.1"
 //    val scalacheckFaker = "7.0.0"
-//    val zio = "1.0.13"
+    val zio = "2.0.11"
+    val shapeless = "3.3.0"
     val slf4j = "2.0.6"
     val zioCats = "23.0.0.2"
     val zioKafka = "2.0.7"
@@ -70,10 +72,13 @@ object Dependencies {
 
   case object dev {
     case object zio {
-//      val `zio-streams` = "dev.zio" %% "zio-streams" % Versions.zio
-      val `zio-kafka` = "dev.zio" %% "zio-kafka" % Versions.zioKafka
-      val `zio-json` = "dev.zio" %% "zio-json" % Versions.zioJson
-      val `zio-interop-cats` = "dev.zio" %% "zio-interop-cats" % Versions.zioCats
+      val `zio-kafka` = dependency("kafka") % Versions.zioKafka
+      val `zio-interop-cats` = dependency("interop-cats") % Versions.zioCats
+      val `zio-test` = dependency("test") % Versions.zio % Test
+      val `zio-test-sbt` = dependency("test-sbt") % Versions.zio % Test
+
+      private def dependency(artifact: String) =
+        "dev.zio" %% s"zio-$artifact"
     }
   }
 
@@ -118,10 +123,10 @@ object Dependencies {
       val `slf4j-simple` = "org.slf4j" % "slf4j-simple" % Versions.slf4j
     }
 
-//    case object scalatest {
-//      val scalatest =
-//        "org.scalatest" %% "scalatest" % Versions.scalaTest
-//    }
+    case object scalatest {
+      val scalatest =
+        "org.scalatest" %% "scalatest" % Versions.scalaTest
+    }
 
     case object tpolecat {
       val `doobie-core` = "org.tpolecat" %% "doobie-core" % Versions.doobie
@@ -132,14 +137,16 @@ object Dependencies {
     }
 
     case object typelevel {
-      val `cats-core` =
-        "org.typelevel" %% "cats-core" % "2.7.0"
+//      val `cats-core` =
+//        "org.typelevel" %% "cats-core" % "2.7.0"
+//
+//      val `cats-effect` =
+//        "org.typelevel" %% "cats-effect" % "3.3.5"
+//
+//      val `discipline-scalatest` =
+//        "org.typelevel" %% "discipline-scalatest" % "2.1.5"
 
-      val `cats-effect` =
-        "org.typelevel" %% "cats-effect" % "3.3.5"
-
-      val `discipline-scalatest` =
-        "org.typelevel" %% "discipline-scalatest" % "2.1.5"
+      val shapeless = "org.typelevel" %% "shapeless3-deriving" % Versions.shapeless
 
     }
   }

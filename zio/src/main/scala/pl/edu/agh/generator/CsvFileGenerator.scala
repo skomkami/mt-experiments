@@ -1,13 +1,12 @@
 package pl.edu.agh.generator
 import pl.edu.agh.model.PlainOrder
-import zio._
-import zio.blocking.Blocking
-import zio.console.{Console, putStrLn}
-import zio.stream._
+import zio.{ZIO, ZIOAppDefault}
+import zio.stream.*
+import zio.Console
 
 import java.nio.file.Paths
 
-object CsvFileGenerator extends zio.App {
+object CsvFileGenerator extends ZIOAppDefault {
   def orderToString(order: PlainOrder): String = {
     val model = order.model.toString
     val equipment = order.equipment.map(_.toString).mkString(",")
@@ -16,14 +15,14 @@ object CsvFileGenerator extends zio.App {
 
   val ORDERS_NO = 1000000
 
-  val ordersLines =
+  val ordersLines: ZStream[Any, Throwable, String] =
     ZStream
       .fromIterator(Iterator.range(1, ORDERS_NO))
       .map(OrderGenerator.randomOrder)
       .tap(o => {
         val percentage = (o.id.toDouble / ORDERS_NO * 100)
         if (percentage.isWhole)
-          console.putStr(s"$percentage %")
+          Console.printLine(s"$percentage %")
         else ZIO.none
       })
       .map(orderToString)
@@ -32,13 +31,13 @@ object CsvFileGenerator extends zio.App {
     "id;date;buyer_name;buyer_address;buyer_email;model;equipment"
   val content = ordersLines
 
-  def generateContent: ZIO[Blocking with Console, Throwable, Long] =
+  def generateContent: ZIO[Any, Throwable, Long] =
     content
       .interleave(ZStream.repeat("\n"))
       .mapConcat(_.getBytes)
-      .run(ZSink.fromFile(Paths.get("orders.csv")))
+      .run(ZSink.fromPath(Paths.get("orders.csv")))
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
+  override def run = {
     ZIO
       .succeed(OrderGenerator.randomOrder(-1))
       .map(_ => ZIO.succeed(println(s"Start: ${System.currentTimeMillis()}ms")))

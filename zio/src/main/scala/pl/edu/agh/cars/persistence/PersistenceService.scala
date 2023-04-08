@@ -3,10 +3,9 @@ package pl.edu.agh.cars.persistence
 import doobie.Transactor
 import izumi.reflect.Tag
 import pl.edu.agh.cars.persistence.persistence.Persistence
-import pl.edu.agh.config.{DbConfig, configuration}
-import zio._
-import zio.blocking.Blocking
-import zio.interop.catz._
+import pl.edu.agh.config.{Configuration, DbConfig}
+import zio.*
+import zio.interop.catz.*
 import zio.interop.catz.implicits.rts
 
 //final class PersistenceService(tnx: Transactor[Task])
@@ -22,26 +21,23 @@ object PersistenceService {
   def mkTransactor[T](
     config: DbConfig,
     mkStore: Transactor[Task] => Persistence.Service[T]
-  ): ZManaged[Any, Throwable, Persistence.Service[T]] = {
+  ): ZIO[Any, Throwable, Persistence.Service[T]] = {
     lazy val transactor: Transactor[Task] = Transactor.fromDriverManager[Task](
       driver = config.driver,
       url = config.url,
       user = config.user,
       pass = config.password
     )
-    ZManaged.succeed(transactor).map(mkStore)
+    ZIO.attemptBlockingIO(transactor).map(mkStore)
   }
-
-  type Persistence[T] = Has[Persistence.Service[T]]
 
   def live[T: Tag](
     mkStore: Transactor[Task] => Persistence.Service[T]
-  ): ZLayer[configuration.Configuration, Throwable, Persistence[T]] =
-    ZLayer.fromManaged(
+  ): ZLayer[Configuration, Throwable, Persistence.Service[T]] =
+    ZLayer.fromZIO(
       (for {
-        config <- configuration.Configuration.load.toManaged_
+        config <- Configuration.load
         managed <- mkTransactor(config.dbConfig, mkStore)
-      } yield
-        managed).provideSomeLayer[configuration.Configuration](Blocking.live)
+      } yield managed)
     )
 }

@@ -1,7 +1,7 @@
 package pl.edu.agh.fs2.pipeline
 
 import cats.effect.IO
-import doobie._
+import doobie.*
 import doobie.util.transactor.Transactor.Aux
 import pl.edu.agh.common.EntityStore
 import pl.edu.agh.config.DbConfig

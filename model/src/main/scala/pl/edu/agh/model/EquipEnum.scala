@@ -1,6 +1,6 @@
 package pl.edu.agh.model
 
-import enumeratum._
+import enumeratum.*
 
 sealed trait EquipEnum extends EnumEntry
 

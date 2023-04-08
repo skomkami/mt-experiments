@@ -1,9 +1,7 @@
 package pl.edu.agh.zio.pipeline
 import record.ProcessingRecord
-import zio.Task
-import zio.ZManaged
+import zio.{Scope, Task, ZIO}
 import zio.stream.ZStream
-import zio.console.putStrLn
 
 case class FileInput(path: String) extends Input[String] {
   override def source(
@@ -11,9 +9,9 @@ case class FileInput(path: String) extends Input[String] {
     partitionCount: Int
   ): ZStream[Any, _, ProcessingRecord[String]] =
     ZStream
-      .fromIteratorManaged(
-        ZManaged
-          .fromAutoCloseable(Task(scala.io.Source.fromFile(path)))
+      .fromIteratorScoped(
+        ZIO
+          .fromAutoCloseable(ZIO.attemptBlockingIO(scala.io.Source.fromFile(path)))
           .map(_.getLines())
       )
       .filter(_.nonEmpty)

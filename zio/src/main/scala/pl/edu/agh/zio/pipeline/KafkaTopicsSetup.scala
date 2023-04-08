@@ -10,7 +10,7 @@ object KafkaTopicsSetup {
     pipeline: Pipeline
   ): ZIO[FlowsConfig, _, _] = {
     ZIO
-      .access[FlowsConfig]
+      .serviceWith[FlowsConfig]
       .apply { flowsConfig =>
         pipeline.pipes
           .flatMap { pipe =>
@@ -30,7 +30,7 @@ object KafkaTopicsSetup {
           }
       }
       .flatMap { topics =>
-        ZIO.effect(KafkaUtil.createTopics(topics))
+        ZIO.attempt(KafkaUtil.createTopics(topics))
       }
   }
 }

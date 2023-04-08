@@ -6,9 +6,9 @@ import doobie.ConnectionIO
 import doobie.util.update.Update
 import pl.edu.agh.common.OrdersStore.SQL
 import pl.edu.agh.model.{OrdersBatch, ProcessedOrder}
-import cats.syntax.flatMap._
+import cats.syntax.flatMap.*
 import doobie.Transactor
-import doobie.implicits._
+import doobie.implicits.*
 
 abstract class OrdersStore[F[_]: MonadCancelThrow: FlatMap](
   tnx: Transactor[F]

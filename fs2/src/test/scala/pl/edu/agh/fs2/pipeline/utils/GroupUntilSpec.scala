@@ -1,8 +1,8 @@
 package pl.edu.agh.fs2.pipeline.utils
 
 import fs2._
-import org.scalatest._
-import org.scalatest.matchers._
+import org.scalatest.*
+import org.scalatest.matchers.*
 import org.scalatest.wordspec.AnyWordSpec
 import pl.edu.agh.fs2.pipeline.utils.GroupUntil._
 

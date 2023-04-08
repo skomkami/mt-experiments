@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import pl.edu.agh.akka.pipeline.KafkaTopicsSetup
 import pl.edu.agh.config.Config
 import pureconfig.ConfigSource
-import pureconfig.generic.auto._
+import pureconfig.generic.auto.*
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt

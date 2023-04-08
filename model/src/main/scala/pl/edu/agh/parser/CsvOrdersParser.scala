@@ -4,8 +4,8 @@ import pl.edu.agh.model.{CarModel, EquipEnum, Person, PlainOrder}
 
 import java.time.OffsetDateTime
 
-object CsvOrdersParser {
-  def fromString(orderStr: String): PlainOrder = {
+object CsvOrdersParser:
+  def fromString(orderStr: String): PlainOrder =
     val columns = orderStr.split(";")
     PlainOrder(
       id = columns(0).toInt,
@@ -16,5 +16,3 @@ object CsvOrdersParser {
       equipment =
         columns.lift(6).toList.flatMap(_.split(",")).map(EquipEnum.withName)
     )
-  }
-}

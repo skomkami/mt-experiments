@@ -1,8 +1,7 @@
 package pl.edu.agh.cars.batcher
 
 import pl.edu.agh.config.FlowsConfig
-import pl.edu.agh.model.JsonDeserializable
-import pl.edu.agh.model.JsonSerializable
+import pl.edu.agh.model.JsonCodec
 import pl.edu.agh.model.OrdersBatch
 import pl.edu.agh.model.ProcessedOrder
 import pl.edu.agh.zio.pipeline.Input
@@ -12,32 +11,30 @@ import pl.edu.agh.zio.pipeline.Output
 import pl.edu.agh.zio.pipeline.Pipe
 import record.ProcessingRecord
 import zio.ZIO
-import zio.stream.{Sink, ZStream, ZTransducer}
+import zio.stream.{ZSink, ZStream, ZPipeline}
 
 case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
   override def name: String = "zio-orders-batcher"
 
   override def input: Input[ProcessedOrder] = {
-    implicit val decoder: JsonDeserializable[ProcessedOrder] = ProcessedOrder
     KafkaInput[ProcessedOrder]("zio_processed_orders", name)
   }
 
   override def output: Output[OrdersBatch] = {
-    implicit val decoder: JsonSerializable[OrdersBatch] = OrdersBatch
     KafkaOutput[OrdersBatch]("zio_order_batch")
   }
 
   override def run: ZIO[FlowsConfig, _, _] = {
-    ZIO.accessM.apply { flowsConfig =>
+    ZIO.serviceWithZIO.apply { flowsConfig =>
       val partitionAssignment = flowsConfig.partitionAssignment
       ZStream
         .fromIterable(partitionAssignment)
-        .mapMPar(flowsConfig.parallelism) {
-          case (node, partitions) =>
+        .mapZIOPar(flowsConfig.parallelism) {
+          case (_, partitions) =>
             input
               .source(partitions, flowsConfig.partitionsCount)
-              .aggregate(
-                ZTransducer
+              .transduce(
+                ZSink
                   .foldWeighted[
                     ProcessingRecord[ProcessedOrder],
                     ProcessingRecord[OrdersBatch]
@@ -49,7 +46,7 @@ case class OrdersBatcher() extends Pipe[ProcessedOrder, OrdersBatch] {
               )
               .run(output.sink)
         }
-        .run(Sink.count)
+        .run(ZSink.count)
     }
   }
 

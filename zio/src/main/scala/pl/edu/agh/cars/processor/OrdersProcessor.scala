@@ -4,7 +4,6 @@ import pl.edu.agh.common.{CarsPrices, FakeCantor}
 import pl.edu.agh.model.EquipEnum
 import pl.edu.agh.model.ItemEnum
 import pl.edu.agh.model.JsonCodec
-import pl.edu.agh.model.JsonDeserializable
 import pl.edu.agh.model.OrderItem
 import pl.edu.agh.model.PlainOrder
 import pl.edu.agh.model.ProcessedOrder
@@ -45,12 +44,10 @@ case class OrdersProcessor() extends StatelessPipe[PlainOrder, ProcessedOrder] {
   }
 
   override def input: Input[PlainOrder] = {
-    implicit val decoder: JsonDeserializable[PlainOrder] = PlainOrder
     KafkaInput[PlainOrder]("zio_orders", name)
   }
 
   override def output: Output[ProcessedOrder] = {
-    implicit val encoder: JsonCodec[ProcessedOrder] = ProcessedOrder
     KafkaOutput[ProcessedOrder]("zio_processed_orders")
   }
 }

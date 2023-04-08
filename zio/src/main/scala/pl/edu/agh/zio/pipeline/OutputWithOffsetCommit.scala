@@ -1,9 +1,8 @@
 package pl.edu.agh.zio.pipeline
 
 import record.ProcessingRecord
-import zio.Task
-import zio.stream.ZSink
-import zio.stream.ZTransducer
+import zio.{ZIO, Task}
+import zio.stream.{ZPipeline, ZSink}
 
 abstract class OutputWithOffsetCommit[T] extends Output[T] {
 
@@ -13,15 +12,15 @@ abstract class OutputWithOffsetCommit[T] extends Output[T] {
         case Some(meta: KafkaRecordMeta) =>
           meta.committableOffset.commit
         case _ =>
-          Task.unit
+          ZIO.unit
       }
     }
   }
 
   final override def sink: ZSink[Any, _, ProcessingRecord[T], _, _] =
-    ZTransducer
+    ZPipeline
       .identity[ProcessingRecord[T]]
-      .mapM(r => outputEffect(r).map(_ => r))
+      .mapZIO(r => outputEffect(r).map(_ => r))
       .>>>(commitSink)
 
   def outputEffect(element: ProcessingRecord[T]): Task[_]

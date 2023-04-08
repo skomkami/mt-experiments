@@ -1,39 +1,30 @@
 package pl.edu.agh.zio.pipeline
 
-import io.circe.generic.decoding.DerivedDecoder
-import pl.edu.agh.model.JsonDeserializable
+import io.circe.Decoder
+import pl.edu.agh.model.JsonCodec
 import record.ProcessingRecord
-import zio.{Chunk, ZIO, ZLayer}
-import zio.kafka.consumer.{
-  Consumer,
-  ConsumerSettings,
-  OffsetBatch,
-  Subscription
-}
+import zio.kafka.consumer.{Consumer, ConsumerSettings, OffsetBatch, Subscription}
 import zio.kafka.serde.{Deserializer, Serde}
 import zio.stream.ZStream
+import zio.{Chunk, ZIO, ZLayer}
 
 import scala.util.Success
 
-case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
-  implicit decoder: JsonDeserializable[T]
-) extends Input[T] {
+case class KafkaInput[T: Decoder](topic: String, consumerName: String) extends Input[T] {
 
   val consumerSettings: ConsumerSettings =
     ConsumerSettings(List("localhost:9092"))
       .withGroupId(consumerName)
 
-  val managedConsumer = Consumer.make(consumerSettings)
+  val scopedConsumer = Consumer.make(consumerSettings)
 
-  val consumer = ZLayer.fromManaged(managedConsumer)
+  val consumer = ZLayer.scoped(scopedConsumer)
 
   val messageSerde: Deserializer[Any, T] = Deserializer.string.mapM {
     messageAsString =>
       ZIO.fromEither(
-        decoder
-          .fromJson(messageAsString)
-          .left
-          .map(new RuntimeException(_))
+        JsonCodec
+          .fromJsonSafe(messageAsString)
       )
   }
 
@@ -51,11 +42,9 @@ case class KafkaInput[T: DerivedDecoder](topic: String, consumerName: String)(
       }
   }
 
-  private val layer = (zio.blocking.Blocking.live ++ zio.clock.Clock.live) >>> consumer
-
   override def source(
     partitions: Set[Int],
     partitionCount: Int
   ): ZStream[Any, _, ProcessingRecord[T]] =
-    messageStream(partitions).provideLayer(layer)
+    messageStream(partitions).provideLayer(consumer)
 }

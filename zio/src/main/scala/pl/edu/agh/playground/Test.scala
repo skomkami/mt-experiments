@@ -1,16 +1,15 @@
 package pl.edu.agh.playground
 
-import zio.{IO, Ref, ZIO}
-
+import zio.{Console, IO, Ref, ZIO, ZIOAppDefault, ZLayer}
 // Unsafe State Management
-object CountRequests extends zio.App {
-  import zio.console._
+object CountRequests extends ZIOAppDefault {
+  import zio.Console.*
 
   def request(counter: Ref[Int]): ZIO[Console, Nothing, Unit] = {
     for {
       _ <- counter.update(_ + 1)
       reqNumber <- counter.get
-      _ <- putStrLn(s"request number: $reqNumber").orDie
+      _ <- Console.printLine(s"request number: $reqNumber").orDie
     } yield ()
   }
 
@@ -20,7 +19,7 @@ object CountRequests extends zio.App {
         if (i < n)
           io *> iRef.update(_ + 1) *> loop
         else
-          IO.unit
+          ZIO.unit
       }
       loop
     }
@@ -31,8 +30,8 @@ object CountRequests extends zio.App {
       ref <- Ref.make(initial)
       _ <- request(ref) zipPar request(ref)
       rn <- ref.get
-      _ <- putStrLn(s"total requests performed: $rn").orDie
+      _ <- Console.printLine(s"total requests performed: $rn").orDie
     } yield ()
 
-  override def run(args: List[String]) = program.exitCode
+  override def run = program.provideLayer(ZLayer.succeed(Console.ConsoleLive))
 }

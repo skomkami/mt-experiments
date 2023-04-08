@@ -2,7 +2,7 @@ package pl.edu.agh.cars.loader
 
 import pl.edu.agh.model.{JsonCodec, PlainOrder}
 import pl.edu.agh.parser.CsvOrdersParser
-import pl.edu.agh.zio.pipeline._
+import pl.edu.agh.zio.pipeline.*
 
 case class OrdersLoader(filename: String)
     extends StatelessPipe[String, PlainOrder] {
@@ -11,7 +11,6 @@ case class OrdersLoader(filename: String)
   override def input: Input[String] = FileInput(filename)
 
   override def output: Output[PlainOrder] = {
-    implicit val encoder: JsonCodec[PlainOrder] = PlainOrder
     KafkaOutput[PlainOrder]("zio_orders")
   }
 

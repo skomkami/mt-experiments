@@ -1,10 +1,10 @@
 package pl.edu.agh.generator
 
 import pl.edu.agh.model.Person
-//import faker._
+//import faker.*
 
 import scala.util.Random
-import scala.util.chaining._
+import scala.util.chaining.*
 
 object PeopleGenerator {
 

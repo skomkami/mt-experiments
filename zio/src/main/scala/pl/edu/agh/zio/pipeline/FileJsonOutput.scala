@@ -1,29 +1,22 @@
 package pl.edu.agh.zio.pipeline
 
-import io.circe.generic.encoding.DerivedAsObjectEncoder
-import izumi.reflect.Tag
-import pl.edu.agh.model.JsonSerializable
+import io.circe.Encoder
+import pl.edu.agh.model.JsonCodec
 import record.ProcessingRecord
+import zio.stream.{ZPipeline, ZSink}
 import zio.Chunk
-import zio.Has
-import zio.stream.ZSink
-import zio.stream.ZTransducer
-
 import java.nio.file.Paths
 
-class FileJsonOutput[T: DerivedAsObjectEncoder: Tag](path: String)(
-  implicit encoder: JsonSerializable[T]
-) extends Output[T] {
+class FileJsonOutput[T: Encoder](path: String) extends Output[T] {
   override def sink: ZSink[Any, _, ProcessingRecord[T], _, _] =
-    ZTransducer
+    ZPipeline
       .identity[ProcessingRecord[T]]
       .map(_.value)
-      .map(encoder.toJson)
+      .map(JsonCodec.toJson[T](_)(summon[Encoder[T]]))
       .map(_.appendedAll("\n"))
       .map(_.getBytes("UTF-8"))
       .map(Chunk.fromArray)
       .mapChunks(_.flatten)
-      .>>>(ZSink.fromFile(Paths.get(path)))
-      .provide(Has(zio.blocking.Blocking.Service.live))
+      .>>>(ZSink.fromPath(Paths.get(path)))
 
 }

@@ -13,7 +13,7 @@ import java.time.Duration
 import java.util
 import java.util.Properties
 import java.util.concurrent.TimeUnit
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 object KafkaUtil {

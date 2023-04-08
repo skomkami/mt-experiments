@@ -1,24 +1,22 @@
 package pl.edu.agh.cars
 
-import pl.edu.agh.config.Config
-import pl.edu.agh.config.configuration.Configuration
+import pl.edu.agh.config.{Config, Configuration}
 import pl.edu.agh.zio.pipeline.KafkaTopicsSetup
-import zio.{App, ExitCode, URIO, ZIO}
-import zio.console.Console
+import zio.{Console, ExitCode, URIO, ZIO, ZIOAppDefault, ZLayer}
 
-object ZIOSetup extends App {
-  def run(args: List[String]): URIO[Any with Console, ExitCode] = {
+object ZIOSetup extends ZIOAppDefault {
+  def run = {
 
     val layer = Configuration.live
 
     val run = for {
-      config <- ZIO.fromFunctionM[Configuration, Throwable, Config](_.get.load)
+      config <- Configuration.load
       pipeline = new OrdersPipeline(config.inputFilePath)
       setup <- KafkaTopicsSetup
         .setupKafkaTopicsForPipeline(pipeline)
-        .provide(config.flowsConfig)
+        .provide(ZLayer.succeed(config.flowsConfig))
     } yield setup
 
-    run.provideLayer(layer).exitCode
+    run.provideLayer(layer)
   }
 }

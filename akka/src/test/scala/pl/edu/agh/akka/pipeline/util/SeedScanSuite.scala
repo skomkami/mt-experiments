@@ -7,7 +7,7 @@ import org.scalatest.matchers.should
 import pl.edu.agh.akka.pipeline.util.SeedScan.SeedScanOps
 
 import scala.concurrent.Await
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class SeedScanSuite extends AnyFlatSpec with should.Matchers {
   implicit val system = ActorSystem("seed-scan-suite")

@@ -1,5 +1,5 @@
 package pl.edu.agh.playground
-import zio.{ExitCode, IO, RIO, Task, URIO, ZIO}
+import zio.{ExitCode, RIO, Scope, Task, URIO, ZIO, ZIOAppArgs, ZIOAppDefault}
 
 class UserID
 class UserProfile
@@ -16,21 +16,20 @@ trait Database {
 
 object db {
   def lookup(id: UserID): RIO[Database, UserProfile] =
-    ZIO.accessM(_.database.lookup(id))
+    ZIO.serviceWithZIO.apply(_.database.lookup(id))
 
   def update(id: UserID, profile: UserProfile): RIO[Database, Unit] =
-    ZIO.accessM(_.database.update(id, profile))
+    ZIO.serviceWithZIO.apply(_.database.update(id, profile))
 }
 
-object Fibers extends zio.App {
+object Fibers extends ZIOAppDefault {
 
-  val program = for {
-    fiber1 <- IO.succeed("Hi!").fork
-    fiber2 <- IO.succeed("Bye!").fork
+  val program: ZIO[Any, Nothing, (String, String)] = for {
+    fiber1 <- ZIO.succeed("Hi!").fork
+    fiber2 <- ZIO.succeed("Bye!").fork
     fiber = fiber1.zip(fiber2)
     tuple <- fiber.join
   } yield tuple
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    program.exitCode
+  override def run = program
 }

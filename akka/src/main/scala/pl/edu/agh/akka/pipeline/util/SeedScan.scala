@@ -2,7 +2,7 @@ package pl.edu.agh.akka.pipeline.util
 
 import akka.stream.ActorAttributes.SupervisionStrategy
 import akka.stream.Attributes.SourceLocation
-import akka.stream._
+import akka.stream.*
 import akka.stream.scaladsl.Source
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 

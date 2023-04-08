@@ -12,9 +12,11 @@ lazy val model =
   project
     .in(file("model"))
     .settings(commonSettings: _*)
-//    .settings(
-//      libraryDependencies ++= Seq(io.github.etspaceman.`scalacheck-faker`)
-//    )
+    .settings(
+      libraryDependencies ++= Seq(
+        com.github.pureconfig.pureconfig
+      )
+    )
 
 lazy val common = project
   .in(file("common"))
@@ -42,10 +44,11 @@ lazy val zio =
       libraryDependencies ++= Seq(
 //        dev.zio.`zio-streams`,
         dev.zio.`zio-kafka`,
-        dev.zio.`zio-json`,
         dev.zio.`zio-interop-cats`,
-        com.github.pureconfig.pureconfig
-      )
+        dev.zio.`zio-test`,
+        dev.zio.`zio-test-sbt`
+      ),
+      testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
     )
 
 //lazy val fs2 =
@@ -68,15 +71,16 @@ lazy val baseLibraries = Seq(
   io.circe.`circe-generic`,
   io.circe.`circe-parser`,
   org.scalacheck.scalacheck,
-//  org.scalatest.scalatest,
-  org.typelevel.`discipline-scalatest`,
+  org.scalatest.scalatest,
+//  org.typelevel.`discipline-scalatest`,
   org.slf4j.`slf4j-api`,
   org.slf4j.`slf4j-simple`,
   org.tpolecat.`doobie-core`,
   org.tpolecat.`doobie-core`,
   org.tpolecat.`doobie-h2`,
   org.tpolecat.`doobie-postgres`,
-  org.tpolecat.`doobie-postgres-circe`
+  org.tpolecat.`doobie-postgres-circe`,
+  org.typelevel.shapeless
 )
 
 lazy val commonSettings = Seq(
@@ -88,4 +92,4 @@ lazy val commonSettings = Seq(
     (Compile / console / scalacOptions).value
 )
 
-lazy val effects = Seq(org.typelevel.`cats-effect`)
+//lazy val effects = Seq(org.typelevel.`cats-effect`)

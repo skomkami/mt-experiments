@@ -1,7 +1,7 @@
 package pl.edu.agh.cars.loader
 
 import akka.actor.ActorSystem
-import pl.edu.agh.akka.pipeline._
+import pl.edu.agh.akka.pipeline.*
 import pl.edu.agh.model.{JsonCodec, PlainOrder}
 import pl.edu.agh.parser.CsvOrdersParser
 

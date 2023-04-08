@@ -1,11 +1,10 @@
 package pl.edu.agh.zio.pipeline
 
 import pl.edu.agh.config.FlowsConfig
-import pl.edu.agh.zio.pipeline.utils.SeedScan._
+import pl.edu.agh.zio.pipeline.utils.SeedScan.*
 import record.ProcessingRecord
 import zio.Task
 import zio.ZIO
-import zio.stream.Sink
 import zio.stream.ZSink
 import zio.stream.ZStream
 
@@ -31,18 +30,18 @@ abstract class StatelessPipe[In, Out] extends Pipe[In, Out] {
   def onEvent(event: In): Out
 
   def run: ZIO[FlowsConfig, _, _] =
-    ZIO.accessM.apply { flowsConfig =>
+    ZIO.serviceWithZIO.apply { flowsConfig =>
       val partitionAssignment = flowsConfig.partitionAssignment
       ZStream //4
         .fromIterable(partitionAssignment)
-        .mapMPar(flowsConfig.parallelism) {
+        .mapZIOPar(flowsConfig.parallelism) {
           case (_, partitions) =>
             input
               .source(partitions, flowsConfig.partitionsCount)
               .map(_.map(onEvent))
               .run(output.sink)
         }
-        .run(Sink.count)
+        .run(ZSink.count)
     }
 
 }
@@ -61,7 +60,7 @@ abstract class StatefulPipe[In, S] extends Pipe[In, S] {
   }
 
   def run: ZIO[FlowsConfig, _, _] = {
-    ZIO.accessM.apply { flowsConfig =>
+    ZIO.serviceWithZIO.apply { flowsConfig =>
       val partitionAssignment = flowsConfig.partitionAssignment
       val par = flowsConfig.parallelism
       ZStream
@@ -70,7 +69,7 @@ abstract class StatefulPipe[In, S] extends Pipe[In, S] {
           case (_, partitions) =>
             ZStream
               .fromIterable(partitions)
-              .mapMPar(par)(p => restore(p).map(restored => p -> restored))
+              .mapZIOPar(par)(p => restore(p).map(restored => p -> restored))
               .map {
                 case (p, Some(restored)) =>
                   input
@@ -81,9 +80,9 @@ abstract class StatefulPipe[In, S] extends Pipe[In, S] {
                     .source(Set(p), flowsConfig.partitionsCount)
                     .seedScan(_.map(onInit))(onRecord)
               }
-              .mapMPar[Any, Any, Any](par)(_.run(output.sink))
+              .mapZIOPar[Any, Any, Any](par)(_.run(output.sink))
         }
-        .run(Sink.count)
+        .run(ZSink.count)
     }
   }
 }

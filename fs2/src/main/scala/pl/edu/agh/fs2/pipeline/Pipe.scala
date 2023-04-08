@@ -4,7 +4,7 @@ import cats.effect.IO
 import fs2.{Stream, Pipe => FS2Pipe}
 import pl.edu.agh.config.FlowsConfig
 import record.ProcessingRecord
-import utils.SeedScan._
+import utils.SeedScan.*
 
 trait Input[T] {
   def source(partitions: Set[Int],
